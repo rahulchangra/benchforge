@@ -17,8 +17,10 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
-import { useState } from "react";
+import { createContext, useContext, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+
+const SidebarContext = createContext(false);
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -35,9 +37,15 @@ const navItems = [
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 
-export function Sidebar() {
+export function Sidebar({ onCollapse }: { onCollapse?: (collapsed: boolean) => void }) {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
+
+  const toggle = () => {
+    const next = !collapsed;
+    setCollapsed(next);
+    onCollapse?.(next);
+  };
 
   return (
     <motion.aside
@@ -63,7 +71,7 @@ export function Sidebar() {
           )}
         </AnimatePresence>
         <button
-          onClick={() => setCollapsed(!collapsed)}
+          onClick={toggle}
           className="rounded-md p-1.5 text-neutral-400 hover:bg-neutral-800 hover:text-neutral-200"
           aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
@@ -122,10 +130,24 @@ export function Sidebar() {
 }
 
 export function AppShell({ children }: { children: React.ReactNode }) {
+  const [collapsed, setCollapsed] = useState(false);
+
   return (
-    <div className="flex min-h-screen">
-      <Sidebar />
-      <main className="ml-64 flex-1 p-8">{children}</main>
-    </div>
+    <SidebarContext.Provider value={collapsed}>
+      <div className="flex min-h-screen">
+        <Sidebar onCollapse={setCollapsed} />
+        <motion.main
+          animate={{ marginLeft: collapsed ? 64 : 256 }}
+          transition={{ duration: 0.2 }}
+          className="flex-1 p-8"
+        >
+          {children}
+        </motion.main>
+      </div>
+    </SidebarContext.Provider>
   );
+}
+
+export function useSidebarCollapsed() {
+  return useContext(SidebarContext);
 }

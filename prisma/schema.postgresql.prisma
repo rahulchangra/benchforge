@@ -1,0 +1,667 @@
+// ============================================================================
+// GitHub Benchmark & Learning Studio SaaS — Prisma Schema (PostgreSQL)
+// Provider: PostgreSQL (production)
+// ============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================================
+// Enums — PostgreSQL supports native enums
+// ============================================================================
+
+enum LicenseStatus {
+  PENDING
+  ALLOWED
+  REJECTED
+  UNKNOWN
+}
+
+enum LocStatus {
+  PENDING
+  MEASURED
+  FAILED
+  EXCLUDED
+}
+
+enum RepoEligibility {
+  PENDING
+  ELIGIBLE
+  INELIGIBLE
+}
+
+enum JobStatus {
+  QUEUED
+  RUNNING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum BenchmarkStatus {
+  DRAFT
+  VALIDATING
+  VALIDATED
+  PUBLISHED
+  REJECTED
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  APPROVED_WITH_CHANGES
+  REJECTED
+  NEEDS_EVIDENCE
+  INCORRECT
+  INCOMPLETE
+}
+
+enum NodeType {
+  DOMAIN
+  TOPIC
+  SUBTOPIC
+  CONCEPT
+  REQUIREMENT_PATTERN
+  SOLUTION_STRATEGY
+  ARCHITECTURE_PATTERN
+  ALGORITHM
+  CODE_PATTERN
+  TESTING_STRATEGY
+  FAILURE_MODE
+  EVALUATION_CRITERION
+  APPROVED_EXAMPLE
+  REUSABLE_INSIGHT
+  EVIDENCE_SOURCE
+}
+
+enum EdgeType {
+  PARENT_OF
+  DEPENDS_ON
+  IMPLEMENTS
+  EXTENDS
+  SIMILAR_TO
+  CONTRASTS_WITH
+  SOLVES
+  TESTED_BY
+  EVALUATED_BY
+  DERIVED_FROM
+  REUSES
+  CONFLICTS_WITH
+  SUPERSEDES
+}
+
+// ============================================================================
+// Shared Models
+// ============================================================================
+
+model User {
+  id          String   @id @default(cuid())
+  email       String   @unique
+  name        String
+  avatarUrl   String?
+  githubId    String?  @unique
+  githubToken String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  licensePolicies    LicensePolicy[]
+  learningWorkspaces LearningWorkspace[]
+  auditLogs          AuditLog[]
+
+  @@index([email])
+  @@index([githubId])
+}
+
+model LicensePolicy {
+  id                 String   @id @default(cuid())
+  version            Int      @unique
+  allowedIdentifiers String
+  ccByIdentifiers    String
+  effectiveFrom      DateTime
+  createdById        String
+  createdBy          User     @relation(fields: [createdById], references: [id])
+  notes              String?
+  createdAt          DateTime @default(now())
+
+  @@index([version])
+  @@index([createdById])
+}
+
+model Repository {
+  id              String   @id @default(cuid())
+  githubId        Int      @unique
+  owner           String
+  name            String
+  fullName        String   @unique
+  description     String?
+  url             String
+  defaultBranch   String
+  primaryLanguage String?
+  languages       String?
+  topics          String?
+  stars           Int      @default(0)
+  forks           Int      @default(0)
+  isPrivate       Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  discoveredAt    DateTime @default(now())
+
+  snapshots            RepositorySnapshot[]
+  licenseVerifications LicenseVerification[]
+  locMeasurements      LocMeasurement[]
+  issues               Issue[]
+  pullRequests         PullRequest[]
+  issueCandidates      IssueCandidate[]
+  benchmarks           Benchmark[]
+  analysisEvidence     AnalysisEvidence[]
+
+  @@index([owner, name])
+  @@index([fullName])
+  @@index([primaryLanguage])
+  @@index([stars])
+  @@index([githubId])
+}
+
+model RepositorySnapshot {
+  id           String     @id @default(cuid())
+  repositoryId String
+  repository   Repository @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+  commitSha    String
+  snapshotAt   DateTime
+  pinned       Boolean    @default(true)
+  createdAt    DateTime   @default(now())
+
+  licenseVerifications LicenseVerification[]
+  locMeasurements      LocMeasurement[]
+  benchmarks           Benchmark[]
+  analysisEvidence     AnalysisEvidence[]
+
+  @@unique([repositoryId, commitSha])
+  @@index([repositoryId])
+  @@index([commitSha])
+}
+
+model LicenseVerification {
+  id                   String             @id @default(cuid())
+  repositoryId         String
+  repository           Repository         @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+  snapshotId           String
+  snapshot             RepositorySnapshot @relation(fields: [snapshotId], references: [id], onDelete: Cascade)
+  detectedIdentifier   String?
+  normalizedIdentifier String?
+  status               LicenseStatus
+  source               String
+  evidence             String
+  policyVersion        Int
+  verifiedAt           DateTime
+  createdAt            DateTime           @default(now())
+
+  @@index([repositoryId])
+  @@index([snapshotId])
+  @@index([status])
+  @@index([policyVersion])
+}
+
+model LocMeasurement {
+  id                String             @id @default(cuid())
+  repositoryId      String
+  repository        Repository         @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+  snapshotId        String
+  snapshot          RepositorySnapshot @relation(fields: [snapshotId], references: [id], onDelete: Cascade)
+  status            LocStatus
+  totalLoc          Int?
+  nonblankLoc       Int?
+  codeLoc           Int?
+  languageBreakdown String?
+  exclusions        String
+  methodology       String
+  toolVersion       String
+  measuredAt        DateTime?
+  error             String?
+  createdAt         DateTime           @default(now())
+
+  @@index([repositoryId])
+  @@index([snapshotId])
+  @@index([status])
+}
+
+model Issue {
+  id           String    @id @default(cuid())
+  repositoryId String
+  repository   Repository @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+  githubId     Int
+  number       Int
+  title        String
+  body         String?
+  labels       String
+  state        String
+  url          String
+  authorLogin  String?
+  createdAtGh  DateTime
+  updatedAtGh  DateTime
+  closedAtGh   DateTime?
+  discoveredAt DateTime  @default(now())
+
+  issueCandidate IssueCandidate?
+
+  @@unique([repositoryId, number])
+  @@index([repositoryId])
+  @@index([state])
+  @@index([authorLogin])
+  @@index([createdAtGh])
+}
+
+model PullRequest {
+  id             String    @id @default(cuid())
+  repositoryId   String
+  repository     Repository @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+  githubId       Int
+  number         Int
+  title          String
+  state          String
+  mergedAt       DateTime?
+  mergeCommitSha String?
+  url            String
+  createdAt      DateTime  @default(now())
+
+  issueCandidates IssueCandidate[]
+
+  @@index([repositoryId])
+  @@index([state])
+  @@index([mergedAt])
+}
+
+model IssueCandidate {
+  id                       String       @id @default(cuid())
+  issueId                  String       @unique
+  issue                    Issue        @relation(fields: [issueId], references: [id], onDelete: Cascade)
+  repositoryId             String
+  repository               Repository   @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+  technicalScore           Float?
+  reproductionFeasibility  Float?
+  complexityScore          Float?
+  benchmarkSuitability     Float?
+  assessmentNotes          String?
+  relatedPrId              String?
+  relatedPr                PullRequest? @relation(fields: [relatedPrId], references: [id], onDelete: SetNull)
+  fixCommitSha             String?
+  status                   String       @default("pending")
+  rejectionReason          String?
+  assessedAt               DateTime?
+  createdAt                DateTime     @default(now())
+
+  benchmarkJobs BenchmarkJob[]
+  benchmark     Benchmark?
+
+  @@index([repositoryId])
+  @@index([status])
+  @@index([benchmarkSuitability])
+  @@index([relatedPrId])
+}
+
+model BenchmarkJob {
+  id               String         @id @default(cuid())
+  issueCandidateId String
+  issueCandidate   IssueCandidate @relation(fields: [issueCandidateId], references: [id], onDelete: Cascade)
+  status           JobStatus      @default(QUEUED)
+  progress         Int            @default(0)
+  currentStep      String?
+  logs             String         @default("[]")
+  startedAt        DateTime?
+  completedAt      DateTime?
+  error            String?
+  retryCount       Int            @default(0)
+  idempotencyKey   String?        @unique
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  @@index([issueCandidateId])
+  @@index([status])
+  @@index([idempotencyKey])
+  @@index([createdAt])
+}
+
+model Benchmark {
+  id                 String             @id @default(cuid())
+  issueCandidateId   String             @unique
+  issueCandidate     IssueCandidate     @relation(fields: [issueCandidateId], references: [id], onDelete: Cascade)
+  repositoryId       String
+  repository         Repository         @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+  snapshotId         String
+  snapshot           RepositorySnapshot @relation(fields: [snapshotId], references: [id], onDelete: Cascade)
+  status             BenchmarkStatus    @default(DRAFT)
+  version            Int                @default(1)
+  metadata           String
+  problemDefinition  String
+  environment        String
+  validationEvidence String?
+  patchInfo          String?
+  qualityScore       Float?
+  publishedAt        DateTime?
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  analysisEvidence AnalysisEvidence[]
+
+  @@index([repositoryId])
+  @@index([snapshotId])
+  @@index([status])
+  @@index([qualityScore])
+  @@index([publishedAt])
+}
+
+model AnalysisEvidence {
+  id           String              @id @default(cuid())
+  benchmarkId  String?
+  benchmark    Benchmark?          @relation(fields: [benchmarkId], references: [id], onDelete: SetNull)
+  repositoryId String
+  repository   Repository          @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+  snapshotId   String?
+  snapshot     RepositorySnapshot? @relation(fields: [snapshotId], references: [id], onDelete: SetNull)
+  type         String
+  tool         String
+  toolVersion  String?
+  input        String?
+  output       String
+  filePath     String?
+  lineRange    String?
+  commitSha    String?
+  fileHash     String?
+  confidence   Float?
+  createdAt    DateTime            @default(now())
+
+  @@index([benchmarkId])
+  @@index([repositoryId])
+  @@index([snapshotId])
+  @@index([type])
+  @@index([tool])
+}
+
+// ============================================================================
+// Learning Studio Models
+// ============================================================================
+
+model LearningWorkspace {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  taskPackages     TaskPackage[]
+  knowledgeNodes   KnowledgeNode[]
+  knowledgeEdges   KnowledgeEdge[]
+  sourceEvidence   SourceEvidence[]
+  reusablePatterns ReusablePattern[]
+  generatedDrafts  GeneratedDraft[]
+  learningFeedback LearningFeedback[]
+
+  @@index([userId])
+  @@index([name])
+}
+
+model TaskPackage {
+  id               String            @id @default(cuid())
+  workspaceId      String
+  workspace        LearningWorkspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  title            String
+  description      String?
+  domain           String?
+  category         String?
+  approvalStatus   ApprovalStatus    @default(PENDING)
+  approvalEvidence String?
+  tags             String            @default("[]")
+  version          Int               @default(1)
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  uploadedDocuments     UploadedDocument[]
+  extractedRequirements ExtractedRequirement[]
+  sourceEvidence        SourceEvidence[]
+  learningJobs          LearningJob[]
+
+  @@index([workspaceId])
+  @@index([approvalStatus])
+  @@index([domain])
+  @@index([category])
+}
+
+model UploadedDocument {
+  id            String      @id @default(cuid())
+  taskPackageId String
+  taskPackage   TaskPackage @relation(fields: [taskPackageId], references: [id], onDelete: Cascade)
+  filename      String
+  originalName  String
+  mimeType      String
+  size          Int
+  storagePath   String
+  extractedText String?
+  metadata      String?
+  createdAt     DateTime    @default(now())
+
+  extractedRequirements ExtractedRequirement[]
+  sourceEvidence        SourceEvidence[]
+
+  @@index([taskPackageId])
+  @@index([mimeType])
+}
+
+model ExtractedRequirement {
+  id              String            @id @default(cuid())
+  taskPackageId   String
+  taskPackage     TaskPackage       @relation(fields: [taskPackageId], references: [id], onDelete: Cascade)
+  documentId      String?
+  document        UploadedDocument? @relation(fields: [documentId], references: [id], onDelete: SetNull)
+  content         String
+  type            String
+  priority        String?
+  sourceReference String?
+  createdAt       DateTime          @default(now())
+
+  @@index([taskPackageId])
+  @@index([documentId])
+  @@index([type])
+}
+
+model KnowledgeNode {
+  id               String            @id @default(cuid())
+  workspaceId      String
+  workspace        LearningWorkspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  type             NodeType
+  name             String
+  definition       String?
+  sourceReferences String            @default("[]")
+  relatedTaskIds   String            @default("[]")
+  confidence       Float             @default(0.5)
+  applicability    String?
+  limitations      String?
+  reviewStatus     String            @default("pending")
+  parentId         String?
+  parent           KnowledgeNode?    @relation("ChildNodes", fields: [parentId], references: [id], onDelete: SetNull)
+  children         KnowledgeNode[]   @relation("ChildNodes")
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  outgoingEdges    KnowledgeEdge[]    @relation("OutgoingEdges")
+  incomingEdges    KnowledgeEdge[]    @relation("IncomingEdges")
+  sourceEvidence   SourceEvidence[]
+  learningFeedback LearningFeedback[]
+
+  @@index([workspaceId])
+  @@index([type])
+  @@index([parentId])
+  @@index([reviewStatus])
+  @@index([confidence])
+  @@index([name])
+}
+
+model KnowledgeEdge {
+  id           String            @id @default(cuid())
+  workspaceId  String
+  workspace    LearningWorkspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  sourceNodeId String
+  sourceNode   KnowledgeNode     @relation("OutgoingEdges", fields: [sourceNodeId], references: [id], onDelete: Cascade)
+  targetNodeId String
+  targetNode   KnowledgeNode     @relation("IncomingEdges", fields: [targetNodeId], references: [id], onDelete: Cascade)
+  type         EdgeType
+  evidence     String?
+  explanation  String?
+  confidence   Float             @default(0.5)
+  createdAt    DateTime          @default(now())
+
+  @@index([workspaceId])
+  @@index([sourceNodeId])
+  @@index([targetNodeId])
+  @@index([type])
+}
+
+model SourceEvidence {
+  id               String             @id @default(cuid())
+  workspaceId      String
+  workspace        LearningWorkspace  @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  nodeId           String?
+  node             KnowledgeNode?     @relation(fields: [nodeId], references: [id], onDelete: SetNull)
+  documentId       String?
+  document         UploadedDocument?  @relation(fields: [documentId], references: [id], onDelete: SetNull)
+  taskPackageId    String?
+  taskPackage      TaskPackage?       @relation(fields: [taskPackageId], references: [id], onDelete: SetNull)
+  content          String
+  extractionMethod String
+  sourceReference  String
+  createdAt        DateTime           @default(now())
+
+  @@index([workspaceId])
+  @@index([nodeId])
+  @@index([documentId])
+  @@index([taskPackageId])
+}
+
+model ReusablePattern {
+  id                     String            @id @default(cuid())
+  workspaceId            String
+  workspace              LearningWorkspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  name                   String
+  principle              String
+  preconditions          String?
+  applicableContexts     String            @default("[]")
+  implementationGuidance String?
+  limitations            String?
+  counterexamples        String            @default("[]")
+  validationApproach     String?
+  supportingTaskRefs     String            @default("[]")
+  confidence             Float             @default(0.5)
+  reviewStatus           String            @default("pending")
+  createdAt              DateTime          @default(now())
+  updatedAt              DateTime          @updatedAt
+
+  @@index([workspaceId])
+  @@index([reviewStatus])
+  @@index([confidence])
+  @@index([name])
+}
+
+model LearningJob {
+  id            String      @id @default(cuid())
+  taskPackageId String
+  taskPackage   TaskPackage @relation(fields: [taskPackageId], references: [id], onDelete: Cascade)
+  status        JobStatus   @default(QUEUED)
+  progress      Int         @default(0)
+  currentStep   String?
+  logs          String      @default("[]")
+  startedAt     DateTime?
+  completedAt   DateTime?
+  error         String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@index([taskPackageId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model GeneratedDraft {
+  id                  String            @id @default(cuid())
+  workspaceId         String
+  workspace           LearningWorkspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  taskTitle           String
+  taskDescription     String?
+  inputRequirements   String
+  retrievedNodeIds    String            @default("[]")
+  retrievedPatternIds String            @default("[]")
+  generatedContent    String
+  requirementChecks   String            @default("[]")
+  supportingEvidence  String            @default("[]")
+  assumptions         String            @default("[]")
+  unresolvedQuestions String            @default("[]")
+  approvalStatus      ApprovalStatus    @default(PENDING)
+  version             Int               @default(1)
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+
+  humanReviews     HumanReview[]
+  learningFeedback LearningFeedback[]
+
+  @@index([workspaceId])
+  @@index([approvalStatus])
+  @@index([createdAt])
+}
+
+model HumanReview {
+  id                String         @id @default(cuid())
+  draftId           String
+  draft             GeneratedDraft @relation(fields: [draftId], references: [id], onDelete: Cascade)
+  reviewerNotes     String?
+  corrections       String?
+  revisedContent    String?
+  status            ApprovalStatus
+  evaluatorFeedback String?
+  createdAt         DateTime       @default(now())
+
+  @@index([draftId])
+  @@index([status])
+}
+
+model LearningFeedback {
+  id           String             @id @default(cuid())
+  workspaceId  String
+  workspace    LearningWorkspace  @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  draftId      String?
+  draft        GeneratedDraft?    @relation(fields: [draftId], references: [id], onDelete: SetNull)
+  nodeId       String?
+  node         KnowledgeNode?     @relation(fields: [nodeId], references: [id], onDelete: SetNull)
+  feedbackType String
+  content      String
+  impact       String?
+  appliedAt    DateTime?
+  createdAt    DateTime           @default(now())
+
+  @@index([workspaceId])
+  @@index([draftId])
+  @@index([nodeId])
+  @@index([feedbackType])
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action     String
+  entityType String
+  entityId   String
+  details    String?
+  ipAddress  String?
+  createdAt  DateTime @default(now())
+
+  @@index([userId])
+  @@index([action])
+  @@index([entityType, entityId])
+  @@index([createdAt])
+}
