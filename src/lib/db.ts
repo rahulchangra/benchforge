@@ -5,7 +5,7 @@ declare global {
   var __prisma: PrismaClient | undefined;
 }
 
-/** Singleton Prisma client - reuses connection in dev with HMR */
+/** Singleton Prisma client — reuses connection in dev with HMR */
 export const prisma: PrismaClient =
   globalThis.__prisma ??
   new PrismaClient({

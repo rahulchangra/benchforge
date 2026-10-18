@@ -1,6 +1,6 @@
 // ============================================================================
-// GitHub Benchmark & Learning Studio SaaS — Prisma Schema
-// Provider: SQLite (local dev)
+// GitHub Benchmark & Learning Studio SaaS — Prisma Schema (PostgreSQL)
+// Provider: PostgreSQL (production)
 // ============================================================================
 
 generator client {
@@ -8,28 +8,93 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
 // ============================================================================
-// Enums — SQLite doesn't support native enums, so we use string fields with
-// documentation comments. The enum declarations below are kept for reference
-// and will work when migrating to PostgreSQL.
+// Enums — PostgreSQL supports native enums
 // ============================================================================
 
-// NOTE: SQLite does not support enums natively. Prisma will store these as
-// String columns. The enum declarations are removed for SQLite compatibility.
-// Enum values are documented in comments on each field that uses them.
+enum LicenseStatus {
+  PENDING
+  ALLOWED
+  REJECTED
+  UNKNOWN
+}
 
-// LicenseStatus: PENDING | ALLOWED | REJECTED | UNKNOWN
-// LocStatus: PENDING | MEASURED | FAILED | EXCLUDED
-// RepoEligibility: PENDING | ELIGIBLE | INELIGIBLE
-// JobStatus: QUEUED | RUNNING | COMPLETED | FAILED | CANCELLED
-// BenchmarkStatus: DRAFT | VALIDATING | VALIDATED | PUBLISHED | REJECTED
-// ApprovalStatus: PENDING | APPROVED | APPROVED_WITH_CHANGES | REJECTED | NEEDS_EVIDENCE | INCORRECT | INCOMPLETE
-// NodeType: DOMAIN | TOPIC | SUBTOPIC | CONCEPT | REQUIREMENT_PATTERN | SOLUTION_STRATEGY | ARCHITECTURE_PATTERN | ALGORITHM | CODE_PATTERN | TESTING_STRATEGY | FAILURE_MODE | EVALUATION_CRITERION | APPROVED_EXAMPLE | REUSABLE_INSIGHT | EVIDENCE_SOURCE
-// EdgeType: PARENT_OF | DEPENDS_ON | IMPLEMENTS | EXTENDS | SIMILAR_TO | CONTRASTS_WITH | SOLVES | TESTED_BY | EVALUATED_BY | DERIVED_FROM | REUSES | CONFLICTS_WITH | SUPERSEDES
+enum LocStatus {
+  PENDING
+  MEASURED
+  FAILED
+  EXCLUDED
+}
+
+enum RepoEligibility {
+  PENDING
+  ELIGIBLE
+  INELIGIBLE
+}
+
+enum JobStatus {
+  QUEUED
+  RUNNING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum BenchmarkStatus {
+  DRAFT
+  VALIDATING
+  VALIDATED
+  PUBLISHED
+  REJECTED
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  APPROVED_WITH_CHANGES
+  REJECTED
+  NEEDS_EVIDENCE
+  INCORRECT
+  INCOMPLETE
+}
+
+enum NodeType {
+  DOMAIN
+  TOPIC
+  SUBTOPIC
+  CONCEPT
+  REQUIREMENT_PATTERN
+  SOLUTION_STRATEGY
+  ARCHITECTURE_PATTERN
+  ALGORITHM
+  CODE_PATTERN
+  TESTING_STRATEGY
+  FAILURE_MODE
+  EVALUATION_CRITERION
+  APPROVED_EXAMPLE
+  REUSABLE_INSIGHT
+  EVIDENCE_SOURCE
+}
+
+enum EdgeType {
+  PARENT_OF
+  DEPENDS_ON
+  IMPLEMENTS
+  EXTENDS
+  SIMILAR_TO
+  CONTRASTS_WITH
+  SOLVES
+  TESTED_BY
+  EVALUATED_BY
+  DERIVED_FROM
+  REUSES
+  CONFLICTS_WITH
+  SUPERSEDES
+}
 
 // ============================================================================
 // Shared Models
@@ -41,7 +106,7 @@ model User {
   name        String
   avatarUrl   String?
   githubId    String?  @unique
-  githubToken String?  // encrypted at application layer
+  githubToken String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -56,8 +121,8 @@ model User {
 model LicensePolicy {
   id                 String   @id @default(cuid())
   version            Int      @unique
-  allowedIdentifiers String   // JSON string array — e.g. ["MIT","Apache-2.0"]
-  ccByIdentifiers    String   // JSON string array — e.g. ["CC-BY-4.0"]
+  allowedIdentifiers String
+  ccByIdentifiers    String
   effectiveFrom      DateTime
   createdById        String
   createdBy          User     @relation(fields: [createdById], references: [id])
@@ -78,8 +143,8 @@ model Repository {
   url             String
   defaultBranch   String
   primaryLanguage String?
-  languages       String?  // JSON object
-  topics          String?  // JSON string array
+  languages       String?
+  topics          String?
   stars           Int      @default(0)
   forks           Int      @default(0)
   isPrivate       Boolean  @default(false)
@@ -104,13 +169,13 @@ model Repository {
 }
 
 model RepositorySnapshot {
-  id           String   @id @default(cuid())
+  id           String     @id @default(cuid())
   repositoryId String
   repository   Repository @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
   commitSha    String
   snapshotAt   DateTime
-  pinned       Boolean  @default(true)
-  createdAt    DateTime @default(now())
+  pinned       Boolean    @default(true)
+  createdAt    DateTime   @default(now())
 
   licenseVerifications LicenseVerification[]
   locMeasurements      LocMeasurement[]
@@ -123,19 +188,19 @@ model RepositorySnapshot {
 }
 
 model LicenseVerification {
-  id                   String   @id @default(cuid())
+  id                   String             @id @default(cuid())
   repositoryId         String
   repository           Repository         @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
   snapshotId           String
   snapshot             RepositorySnapshot @relation(fields: [snapshotId], references: [id], onDelete: Cascade)
   detectedIdentifier   String?
   normalizedIdentifier String?
-  status               String   // LicenseStatus: PENDING | ALLOWED | REJECTED | UNKNOWN
-  source               String   // 'api' | 'file' | 'manual'
-  evidence             String   // JSON object
+  status               LicenseStatus
+  source               String
+  evidence             String
   policyVersion        Int
   verifiedAt           DateTime
-  createdAt            DateTime @default(now())
+  createdAt            DateTime           @default(now())
 
   @@index([repositoryId])
   @@index([snapshotId])
@@ -144,22 +209,22 @@ model LicenseVerification {
 }
 
 model LocMeasurement {
-  id                String   @id @default(cuid())
+  id                String             @id @default(cuid())
   repositoryId      String
   repository        Repository         @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
   snapshotId        String
   snapshot          RepositorySnapshot @relation(fields: [snapshotId], references: [id], onDelete: Cascade)
-  status            String   // LocStatus: PENDING | MEASURED | FAILED | EXCLUDED
+  status            LocStatus
   totalLoc          Int?
   nonblankLoc       Int?
-  codeLoc           Int?     // canonical — excludes comments + blanks
-  languageBreakdown String?  // JSON object
-  exclusions        String   // JSON object
+  codeLoc           Int?
+  languageBreakdown String?
+  exclusions        String
   methodology       String
   toolVersion       String
   measuredAt        DateTime?
   error             String?
-  createdAt         DateTime @default(now())
+  createdAt         DateTime           @default(now())
 
   @@index([repositoryId])
   @@index([snapshotId])
@@ -167,21 +232,21 @@ model LocMeasurement {
 }
 
 model Issue {
-  id            String    @id @default(cuid())
-  repositoryId  String
-  repository    Repository @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
-  githubId      Int
-  number        Int
-  title         String
-  body          String?
-  labels        String    // JSON string array
-  state         String
-  url           String
-  authorLogin   String?
-  createdAtGh   DateTime
-  updatedAtGh   DateTime
-  closedAtGh    DateTime?
-  discoveredAt  DateTime  @default(now())
+  id           String    @id @default(cuid())
+  repositoryId String
+  repository   Repository @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+  githubId     Int
+  number       Int
+  title        String
+  body         String?
+  labels       String
+  state        String
+  url          String
+  authorLogin  String?
+  createdAtGh  DateTime
+  updatedAtGh  DateTime
+  closedAtGh   DateTime?
+  discoveredAt DateTime  @default(now())
 
   issueCandidate IssueCandidate?
 
@@ -213,11 +278,11 @@ model PullRequest {
 }
 
 model IssueCandidate {
-  id                       String    @id @default(cuid())
-  issueId                  String    @unique
-  issue                    Issue     @relation(fields: [issueId], references: [id], onDelete: Cascade)
+  id                       String       @id @default(cuid())
+  issueId                  String       @unique
+  issue                    Issue        @relation(fields: [issueId], references: [id], onDelete: Cascade)
   repositoryId             String
-  repository               Repository @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+  repository               Repository   @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
   technicalScore           Float?
   reproductionFeasibility  Float?
   complexityScore          Float?
@@ -226,10 +291,10 @@ model IssueCandidate {
   relatedPrId              String?
   relatedPr                PullRequest? @relation(fields: [relatedPrId], references: [id], onDelete: SetNull)
   fixCommitSha             String?
-  status                   String    @default("pending")
+  status                   String       @default("pending")
   rejectionReason          String?
   assessedAt               DateTime?
-  createdAt                DateTime  @default(now())
+  createdAt                DateTime     @default(now())
 
   benchmarkJobs BenchmarkJob[]
   benchmark     Benchmark?
@@ -241,20 +306,20 @@ model IssueCandidate {
 }
 
 model BenchmarkJob {
-  id                String    @id @default(cuid())
-  issueCandidateId  String
-  issueCandidate    IssueCandidate @relation(fields: [issueCandidateId], references: [id], onDelete: Cascade)
-  status            String    @default("QUEUED") // JobStatus: QUEUED | RUNNING | COMPLETED | FAILED | CANCELLED
-  progress          Int       @default(0)
-  currentStep       String?
-  logs              String    @default("[]") // JSON array
-  startedAt         DateTime?
-  completedAt       DateTime?
-  error             String?
-  retryCount        Int       @default(0)
-  idempotencyKey    String?   @unique
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
+  id               String         @id @default(cuid())
+  issueCandidateId String
+  issueCandidate   IssueCandidate @relation(fields: [issueCandidateId], references: [id], onDelete: Cascade)
+  status           JobStatus      @default(QUEUED)
+  progress         Int            @default(0)
+  currentStep      String?
+  logs             String         @default("[]")
+  startedAt        DateTime?
+  completedAt      DateTime?
+  error            String?
+  retryCount       Int            @default(0)
+  idempotencyKey   String?        @unique
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
 
   @@index([issueCandidateId])
   @@index([status])
@@ -263,24 +328,24 @@ model BenchmarkJob {
 }
 
 model Benchmark {
-  id                  String    @id @default(cuid())
-  issueCandidateId    String    @unique
-  issueCandidate      IssueCandidate @relation(fields: [issueCandidateId], references: [id], onDelete: Cascade)
-  repositoryId        String
-  repository          Repository     @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
-  snapshotId          String
-  snapshot            RepositorySnapshot @relation(fields: [snapshotId], references: [id], onDelete: Cascade)
-  status              String    @default("DRAFT") // BenchmarkStatus: DRAFT | VALIDATING | VALIDATED | PUBLISHED | REJECTED
-  version             Int       @default(1)
-  metadata            String    // JSON object
-  problemDefinition   String    // JSON object
-  environment         String    // JSON object
-  validationEvidence  String?   // JSON object
-  patchInfo           String?   // JSON object
-  qualityScore        Float?
-  publishedAt         DateTime?
-  createdAt           DateTime  @default(now())
-  updatedAt           DateTime  @updatedAt
+  id                 String             @id @default(cuid())
+  issueCandidateId   String             @unique
+  issueCandidate     IssueCandidate     @relation(fields: [issueCandidateId], references: [id], onDelete: Cascade)
+  repositoryId       String
+  repository         Repository         @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+  snapshotId         String
+  snapshot           RepositorySnapshot @relation(fields: [snapshotId], references: [id], onDelete: Cascade)
+  status             BenchmarkStatus    @default(DRAFT)
+  version            Int                @default(1)
+  metadata           String
+  problemDefinition  String
+  environment        String
+  validationEvidence String?
+  patchInfo          String?
+  qualityScore       Float?
+  publishedAt        DateTime?
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
 
   analysisEvidence AnalysisEvidence[]
 
@@ -292,24 +357,24 @@ model Benchmark {
 }
 
 model AnalysisEvidence {
-  id           String   @id @default(cuid())
+  id           String              @id @default(cuid())
   benchmarkId  String?
-  benchmark    Benchmark?         @relation(fields: [benchmarkId], references: [id], onDelete: SetNull)
+  benchmark    Benchmark?          @relation(fields: [benchmarkId], references: [id], onDelete: SetNull)
   repositoryId String
-  repository   Repository         @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+  repository   Repository          @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
   snapshotId   String?
   snapshot     RepositorySnapshot? @relation(fields: [snapshotId], references: [id], onDelete: SetNull)
   type         String
   tool         String
   toolVersion  String?
-  input        String?  // JSON object
-  output       String   // JSON object
+  input        String?
+  output       String
   filePath     String?
   lineRange    String?
   commitSha    String?
   fileHash     String?
   confidence   Float?
-  createdAt    DateTime @default(now())
+  createdAt    DateTime            @default(now())
 
   @@index([benchmarkId])
   @@index([repositoryId])
@@ -344,19 +409,19 @@ model LearningWorkspace {
 }
 
 model TaskPackage {
-  id               String   @id @default(cuid())
+  id               String            @id @default(cuid())
   workspaceId      String
   workspace        LearningWorkspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   title            String
   description      String?
   domain           String?
   category         String?
-  approvalStatus   String   @default("PENDING") // ApprovalStatus
-  approvalEvidence String?  // JSON object
-  tags             String   @default("[]") // JSON string array
-  version          Int      @default(1)
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  approvalStatus   ApprovalStatus    @default(PENDING)
+  approvalEvidence String?
+  tags             String            @default("[]")
+  version          Int               @default(1)
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
 
   uploadedDocuments     UploadedDocument[]
   extractedRequirements ExtractedRequirement[]
@@ -370,7 +435,7 @@ model TaskPackage {
 }
 
 model UploadedDocument {
-  id            String   @id @default(cuid())
+  id            String      @id @default(cuid())
   taskPackageId String
   taskPackage   TaskPackage @relation(fields: [taskPackageId], references: [id], onDelete: Cascade)
   filename      String
@@ -379,8 +444,8 @@ model UploadedDocument {
   size          Int
   storagePath   String
   extractedText String?
-  metadata      String?  // JSON object
-  createdAt     DateTime @default(now())
+  metadata      String?
+  createdAt     DateTime    @default(now())
 
   extractedRequirements ExtractedRequirement[]
   sourceEvidence        SourceEvidence[]
@@ -390,16 +455,16 @@ model UploadedDocument {
 }
 
 model ExtractedRequirement {
-  id              String   @id @default(cuid())
+  id              String            @id @default(cuid())
   taskPackageId   String
-  taskPackage     TaskPackage      @relation(fields: [taskPackageId], references: [id], onDelete: Cascade)
+  taskPackage     TaskPackage       @relation(fields: [taskPackageId], references: [id], onDelete: Cascade)
   documentId      String?
   document        UploadedDocument? @relation(fields: [documentId], references: [id], onDelete: SetNull)
   content         String
   type            String
   priority        String?
-  sourceReference String?  // JSON object
-  createdAt       DateTime @default(now())
+  sourceReference String?
+  createdAt       DateTime          @default(now())
 
   @@index([taskPackageId])
   @@index([documentId])
@@ -407,23 +472,23 @@ model ExtractedRequirement {
 }
 
 model KnowledgeNode {
-  id               String   @id @default(cuid())
+  id               String            @id @default(cuid())
   workspaceId      String
   workspace        LearningWorkspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  type             String   // NodeType
+  type             NodeType
   name             String
   definition       String?
-  sourceReferences String   @default("[]") // JSON array
-  relatedTaskIds   String   @default("[]") // JSON string array
-  confidence       Float    @default(0.5)
+  sourceReferences String            @default("[]")
+  relatedTaskIds   String            @default("[]")
+  confidence       Float             @default(0.5)
   applicability    String?
   limitations      String?
-  reviewStatus     String   @default("pending")
+  reviewStatus     String            @default("pending")
   parentId         String?
-  parent           KnowledgeNode?  @relation("ChildNodes", fields: [parentId], references: [id], onDelete: SetNull)
-  children         KnowledgeNode[] @relation("ChildNodes")
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  parent           KnowledgeNode?    @relation("ChildNodes", fields: [parentId], references: [id], onDelete: SetNull)
+  children         KnowledgeNode[]   @relation("ChildNodes")
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
 
   outgoingEdges    KnowledgeEdge[]    @relation("OutgoingEdges")
   incomingEdges    KnowledgeEdge[]    @relation("IncomingEdges")
@@ -439,18 +504,18 @@ model KnowledgeNode {
 }
 
 model KnowledgeEdge {
-  id           String   @id @default(cuid())
+  id           String            @id @default(cuid())
   workspaceId  String
   workspace    LearningWorkspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   sourceNodeId String
-  sourceNode   KnowledgeNode @relation("OutgoingEdges", fields: [sourceNodeId], references: [id], onDelete: Cascade)
+  sourceNode   KnowledgeNode     @relation("OutgoingEdges", fields: [sourceNodeId], references: [id], onDelete: Cascade)
   targetNodeId String
-  targetNode   KnowledgeNode @relation("IncomingEdges", fields: [targetNodeId], references: [id], onDelete: Cascade)
-  type         String   // EdgeType
+  targetNode   KnowledgeNode     @relation("IncomingEdges", fields: [targetNodeId], references: [id], onDelete: Cascade)
+  type         EdgeType
   evidence     String?
   explanation  String?
-  confidence   Float    @default(0.5)
-  createdAt    DateTime @default(now())
+  confidence   Float             @default(0.5)
+  createdAt    DateTime          @default(now())
 
   @@index([workspaceId])
   @@index([sourceNodeId])
@@ -459,19 +524,19 @@ model KnowledgeEdge {
 }
 
 model SourceEvidence {
-  id               String   @id @default(cuid())
+  id               String             @id @default(cuid())
   workspaceId      String
-  workspace        LearningWorkspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspace        LearningWorkspace  @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   nodeId           String?
-  node             KnowledgeNode?    @relation(fields: [nodeId], references: [id], onDelete: SetNull)
+  node             KnowledgeNode?     @relation(fields: [nodeId], references: [id], onDelete: SetNull)
   documentId       String?
-  document         UploadedDocument? @relation(fields: [documentId], references: [id], onDelete: SetNull)
+  document         UploadedDocument?  @relation(fields: [documentId], references: [id], onDelete: SetNull)
   taskPackageId    String?
-  taskPackage      TaskPackage?      @relation(fields: [taskPackageId], references: [id], onDelete: SetNull)
+  taskPackage      TaskPackage?       @relation(fields: [taskPackageId], references: [id], onDelete: SetNull)
   content          String
   extractionMethod String
-  sourceReference  String   // JSON object
-  createdAt        DateTime @default(now())
+  sourceReference  String
+  createdAt        DateTime           @default(now())
 
   @@index([workspaceId])
   @@index([nodeId])
@@ -480,22 +545,22 @@ model SourceEvidence {
 }
 
 model ReusablePattern {
-  id                     String   @id @default(cuid())
+  id                     String            @id @default(cuid())
   workspaceId            String
   workspace              LearningWorkspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   name                   String
   principle              String
   preconditions          String?
-  applicableContexts     String   @default("[]") // JSON array
+  applicableContexts     String            @default("[]")
   implementationGuidance String?
   limitations            String?
-  counterexamples        String   @default("[]") // JSON array
+  counterexamples        String            @default("[]")
   validationApproach     String?
-  supportingTaskRefs     String   @default("[]") // JSON array
-  confidence             Float    @default(0.5)
-  reviewStatus           String   @default("pending")
-  createdAt              DateTime @default(now())
-  updatedAt              DateTime @updatedAt
+  supportingTaskRefs     String            @default("[]")
+  confidence             Float             @default(0.5)
+  reviewStatus           String            @default("pending")
+  createdAt              DateTime          @default(now())
+  updatedAt              DateTime          @updatedAt
 
   @@index([workspaceId])
   @@index([reviewStatus])
@@ -504,18 +569,18 @@ model ReusablePattern {
 }
 
 model LearningJob {
-  id            String    @id @default(cuid())
+  id            String      @id @default(cuid())
   taskPackageId String
   taskPackage   TaskPackage @relation(fields: [taskPackageId], references: [id], onDelete: Cascade)
-  status        String    @default("QUEUED") // JobStatus
-  progress      Int       @default(0)
+  status        JobStatus   @default(QUEUED)
+  progress      Int         @default(0)
   currentStep   String?
-  logs          String    @default("[]") // JSON array
+  logs          String      @default("[]")
   startedAt     DateTime?
   completedAt   DateTime?
   error         String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
 
   @@index([taskPackageId])
   @@index([status])
@@ -523,23 +588,23 @@ model LearningJob {
 }
 
 model GeneratedDraft {
-  id                   String   @id @default(cuid())
-  workspaceId          String
-  workspace            LearningWorkspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  taskTitle            String
-  taskDescription      String?
-  inputRequirements    String   // JSON object
-  retrievedNodeIds     String   @default("[]") // JSON string array
-  retrievedPatternIds  String   @default("[]") // JSON string array
-  generatedContent     String
-  requirementChecks    String   @default("[]") // JSON array
-  supportingEvidence   String   @default("[]") // JSON array
-  assumptions          String   @default("[]") // JSON array
-  unresolvedQuestions  String   @default("[]") // JSON array
-  approvalStatus       String   @default("PENDING") // ApprovalStatus
-  version              Int      @default(1)
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
+  id                  String            @id @default(cuid())
+  workspaceId         String
+  workspace           LearningWorkspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  taskTitle           String
+  taskDescription     String?
+  inputRequirements   String
+  retrievedNodeIds    String            @default("[]")
+  retrievedPatternIds String            @default("[]")
+  generatedContent    String
+  requirementChecks   String            @default("[]")
+  supportingEvidence  String            @default("[]")
+  assumptions         String            @default("[]")
+  unresolvedQuestions String            @default("[]")
+  approvalStatus      ApprovalStatus    @default(PENDING)
+  version             Int               @default(1)
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
 
   humanReviews     HumanReview[]
   learningFeedback LearningFeedback[]
@@ -550,33 +615,33 @@ model GeneratedDraft {
 }
 
 model HumanReview {
-  id                String   @id @default(cuid())
+  id                String         @id @default(cuid())
   draftId           String
   draft             GeneratedDraft @relation(fields: [draftId], references: [id], onDelete: Cascade)
   reviewerNotes     String?
-  corrections       String?  // JSON object
+  corrections       String?
   revisedContent    String?
-  status            String   // ApprovalStatus
+  status            ApprovalStatus
   evaluatorFeedback String?
-  createdAt         DateTime @default(now())
+  createdAt         DateTime       @default(now())
 
   @@index([draftId])
   @@index([status])
 }
 
 model LearningFeedback {
-  id           String    @id @default(cuid())
+  id           String             @id @default(cuid())
   workspaceId  String
-  workspace    LearningWorkspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspace    LearningWorkspace  @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   draftId      String?
-  draft        GeneratedDraft?   @relation(fields: [draftId], references: [id], onDelete: SetNull)
+  draft        GeneratedDraft?    @relation(fields: [draftId], references: [id], onDelete: SetNull)
   nodeId       String?
-  node         KnowledgeNode?    @relation(fields: [nodeId], references: [id], onDelete: SetNull)
+  node         KnowledgeNode?     @relation(fields: [nodeId], references: [id], onDelete: SetNull)
   feedbackType String
   content      String
-  impact       String?  // JSON object
+  impact       String?
   appliedAt    DateTime?
-  createdAt    DateTime @default(now())
+  createdAt    DateTime           @default(now())
 
   @@index([workspaceId])
   @@index([draftId])
@@ -591,7 +656,7 @@ model AuditLog {
   action     String
   entityType String
   entityId   String
-  details    String?  // JSON object
+  details    String?
   ipAddress  String?
   createdAt  DateTime @default(now())
 

@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { z } from "zod";
 import prisma from "@/lib/db";
+import type { JobStatus } from "@prisma/client";
 import {
   apiSuccess,
   apiError,
@@ -19,7 +20,7 @@ export const GET = withErrorHandling(async (request: NextRequest) => {
   const status = params.get("status");
   const type = params.get("type"); // "benchmark" | "learning" | null (both)
 
-  const statusFilter = status ? { status } : {};
+  const statusFilter = status ? { status: status as JobStatus } : {};
 
   const results: Array<Record<string, unknown>> = [];
   let total = 0;
