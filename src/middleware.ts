@@ -1,21 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
 
 /** Routes that don't require authentication */
-const publicPaths = [
-  "/",
-  "/login",
-];
+const publicPaths = ["/", "/login"];
 
 /** Prefixes that are always public */
-const publicPrefixes = [
-  "/api/auth",
-  "/_next",
-  "/favicon.ico",
-];
+const publicPrefixes = ["/api/auth", "/api/health", "/_next", "/favicon.ico"];
 
 /** Static asset extensions */
-const staticExtensions = /\.(svg|png|jpg|jpeg|gif|webp|ico|css|js|woff2?|ttf|eot|map)$/;
+const staticExtensions =
+  /\.(svg|png|jpg|jpeg|gif|webp|ico|css|js|woff2?|ttf|eot|map)$/;
 
 /** Attach security headers to every response */
 function withSecurityHeaders(response: NextResponse): NextResponse {
@@ -25,6 +18,13 @@ function withSecurityHeaders(response: NextResponse): NextResponse {
   response.headers.set("X-XSS-Protection", "1; mode=block");
   return response;
 }
+
+/**
+ * When GITHUB_CLIENT_ID is not set, auth is skipped (demo mode).
+ * This lets the app deploy and run on Vercel without an OAuth app.
+ */
+const authEnabled =
+  !!process.env.GITHUB_CLIENT_ID && !!process.env.GITHUB_CLIENT_SECRET;
 
 export default async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -44,26 +44,29 @@ export default async function middleware(request: NextRequest) {
     return withSecurityHeaders(NextResponse.next());
   }
 
-  // Check auth
-  const session = await auth();
+  // Demo mode - skip auth when OAuth is not configured
+  if (!authEnabled) {
+    return withSecurityHeaders(NextResponse.next());
+  }
 
-  if (!session?.user) {
-    const loginUrl = new URL("/login", request.url);
-    loginUrl.searchParams.set("callbackUrl", pathname);
-    return NextResponse.redirect(loginUrl);
+  // Auth is configured - check session
+  try {
+    const { auth } = await import("@/lib/auth");
+    const session = await auth();
+
+    if (!session?.user) {
+      const loginUrl = new URL("/login", request.url);
+      loginUrl.searchParams.set("callbackUrl", pathname);
+      return NextResponse.redirect(loginUrl);
+    }
+  } catch {
+    // Auth misconfigured - fall through in demo mode
+    return withSecurityHeaders(NextResponse.next());
   }
 
   return withSecurityHeaders(NextResponse.next());
 }
 
 export const config = {
-  matcher: [
-    /*
-     * Match all request paths except:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     */
-    "/((?!_next/static|_next/image|favicon\\.ico).*)",
-  ],
+  matcher: ["/((?!_next/static|_next/image|favicon\.ico).*)"],
 };
