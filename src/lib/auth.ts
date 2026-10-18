@@ -17,6 +17,9 @@ export const authConfig: NextAuthConfig = {
 
   session: { strategy: "jwt" },
 
+  // Required for Vercel deployment
+  trustHost: true,
+
   pages: {
     signIn: "/login",
   },
@@ -25,7 +28,6 @@ export const authConfig: NextAuthConfig = {
     async signIn({ account, profile }) {
       if (!account || !profile) return false;
 
-      // Upsert user in our existing User model
       const githubId = String(profile.id ?? account.providerAccountId);
       const email =
         (profile.email as string) ?? `${githubId}@github.placeholder`;
