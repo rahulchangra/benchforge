@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z, type ZodType } from "zod";
+import { ensureSchema } from "@/lib/ensure-schema";
 
 /** Standard API response wrapper */
 export interface ApiResponse<T = unknown> {
@@ -71,6 +72,7 @@ export function withErrorHandling(
 ) {
   return async (request: NextRequest, context?: unknown): Promise<NextResponse> => {
     try {
+      await ensureSchema();
       return await handler(request, context);
     } catch (error) {
       console.error("API Error:", error);
