@@ -23,6 +23,7 @@ import {
   Clipboard,
   Check,
 } from "lucide-react";
+import { AppShell } from "@/components/layout/sidebar";
 
 /* ------------------------------------------------------------------ */
 /* Types                                                               */
@@ -307,9 +308,10 @@ export default function SubmissionDetailPage() {
           `/api/projects/${projectId}/submissions/${subId}`
         );
         if (!res.ok) throw new Error();
-        const data: Submission = await res.json();
+        const json = await res.json();
+        const data: Submission = json.data ?? json;
         setSubmission(data);
-        setTaskPrompt(data.taskPrompt);
+        setTaskPrompt(data.taskPrompt ?? "");
         setTestSh(data.testSh ?? "");
         setTestPatch(data.testPatch ?? "");
         setSolutionPatch(data.solutionPatch ?? "");
@@ -340,7 +342,8 @@ export default function SubmissionDetailPage() {
         }
       );
       if (!res.ok) throw new Error();
-      const updated = await res.json();
+      const json = await res.json();
+      const updated = json.data ?? json;
       setSubmission(updated);
       toast({ type: "success", title: "Submission saved" });
     } catch {
@@ -378,19 +381,21 @@ export default function SubmissionDetailPage() {
 
   if (!submission) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-neutral-950">
-        <div className="text-center">
-          <AlertTriangle size={48} className="mx-auto text-neutral-600" />
-          <p className="mt-4 text-neutral-400">Submission not found</p>
-          <Button
-            variant="outline"
-            className="mt-4"
-            onClick={() => router.push(`/projects/${projectId}`)}
-          >
-            Back to Project
-          </Button>
+      <AppShell>
+        <div className="flex min-h-screen items-center justify-center bg-neutral-950">
+          <div className="text-center">
+            <AlertTriangle size={48} className="mx-auto text-neutral-600" />
+            <p className="mt-4 text-neutral-400">Submission not found</p>
+            <Button
+              variant="outline"
+              className="mt-4"
+              onClick={() => router.push(`/projects/${projectId}`)}
+            >
+              Back to Project
+            </Button>
+          </div>
         </div>
-      </div>
+      </AppShell>
     );
   }
 
@@ -400,7 +405,8 @@ export default function SubmissionDetailPage() {
     .filter(Boolean).length;
 
   return (
-    <div className="min-h-screen bg-neutral-950 px-4 py-8 sm:px-6 lg:px-8">
+    <AppShell>
+      <div className="min-h-screen bg-neutral-950 px-4 py-8 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-5xl">
         {/* Header */}
         <FadeInSection>
@@ -586,6 +592,8 @@ export default function SubmissionDetailPage() {
           </FadeInSection>
         </div>
       </div>
-    </div>
+      </div>
+    </AppShell>
   );
 }
+

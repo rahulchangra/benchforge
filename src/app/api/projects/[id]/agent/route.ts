@@ -33,8 +33,10 @@ export const GET = withErrorHandling(
   }
 );
 
+import { executeAgentRun, startFullPipeline } from "@/lib/agent-engine";
+
 const StartAgentSchema = z.object({
-  type: z.enum(["CRAWL", "ANALYZE", "GENERATE", "VALIDATE"]),
+  type: z.enum(["CRAWL", "ANALYZE", "GENERATE", "VALIDATE", "FULL_PIPELINE"]),
 });
 
 /** POST /api/projects/[id]/agent - Start an agent run */
@@ -47,6 +49,11 @@ export const POST = withErrorHandling(
 
     const { data, error } = await parseBody(request, StartAgentSchema);
     if (error) return error;
+
+    if (data.type === "FULL_PIPELINE") {
+      const runIds = await startFullPipeline(id);
+      return apiSuccess({ message: "Full pipeline initiated", runIds });
+    }
 
     // Check for already-running agent of same type
     const alreadyRunning = await prisma.agentRun.findFirst({
@@ -68,6 +75,12 @@ export const POST = withErrorHandling(
       },
     });
 
+    // Execute agent in background
+    executeAgentRun(run.id).catch((err) => {
+      console.error(`Agent run ${run.id} error:`, err);
+    });
+
     return apiSuccess(run);
   }
 );
+

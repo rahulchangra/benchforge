@@ -44,6 +44,8 @@ import {
   FileUp,
   Rocket,
   Loader2,
+  Download,
+  FileArchive,
 } from "lucide-react";
 
 /* ------------------------------------------------------------------ */
@@ -437,52 +439,81 @@ function SubmissionsTab({ projectId }: { projectId: string }) {
   }
 
   return (
-    <StaggerContainer className="space-y-2">
-      {submissions.map((sub) => (
-        <StaggerItem key={sub.id}>
-          <motion.button
-            onClick={() =>
-              router.push(
-                `/projects/${projectId}/submissions/${sub.id}`
-              )
-            }
-            whileHover={{ x: 2 }}
-            className="group flex w-full items-center gap-4 rounded-lg border border-neutral-800 bg-neutral-900/50 p-4 text-left transition-all hover:border-neutral-700 hover:shadow-[0_0_20px_-5px_rgba(16,185,129,0.1)]"
-          >
-            <div className="rounded-lg bg-neutral-800 p-2.5">
-              <FileText size={16} className="text-neutral-400" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-medium text-neutral-200">
-                {sub.taskTitle}
-              </p>
-              <div className="mt-1 flex items-center gap-3 text-xs text-neutral-500">
-                <span className="flex items-center gap-1">
-                  <Code2 size={10} />
-                  {sub.language}
-                </span>
-                <span>{sub.category}</span>
-                <span>
-                  {new Date(sub.createdAt).toLocaleDateString()}
-                </span>
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h3 className="text-sm font-medium text-neutral-400">
+          Generated Submissions ({submissions.length})
+        </h3>
+        {submissions.some((s) => s.status === "READY") && (
+          <span className="text-xs text-emerald-400 font-medium">
+            ✓ Ready for Quest Olympus manual upload
+          </span>
+        )}
+      </div>
+
+      <StaggerContainer className="space-y-2">
+        {submissions.map((sub) => (
+          <StaggerItem key={sub.id}>
+            <div
+              onClick={() =>
+                router.push(
+                  `/projects/${projectId}/submissions/${sub.id}`
+                )
+              }
+              className="group flex w-full items-center gap-4 rounded-xl border border-neutral-800 bg-neutral-900/50 p-4 text-left transition-all hover:border-neutral-700 hover:shadow-[0_0_20px_-5px_rgba(16,185,129,0.15)] cursor-pointer"
+            >
+              <div className="rounded-lg bg-neutral-800 p-2.5 shrink-0 group-hover:bg-neutral-700 transition-colors">
+                <FileText size={16} className="text-emerald-400" />
               </div>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-semibold text-neutral-200 group-hover:text-white transition-colors">
+                  {sub.taskTitle}
+                </p>
+                <div className="mt-1 flex items-center gap-3 text-xs text-neutral-500">
+                  <span className="flex items-center gap-1 font-mono text-neutral-400">
+                    <Code2 size={10} />
+                    {sub.language}
+                  </span>
+                  <span className="rounded bg-neutral-800/80 px-1.5 py-0.5 text-[10px] text-neutral-400">
+                    {sub.category}
+                  </span>
+                  <span>
+                    {new Date(sub.createdAt).toLocaleDateString()}
+                  </span>
+                </div>
+              </div>
+              {sub.qualityScore != null && (
+                <div className="text-right">
+                  <span className="text-xs font-semibold text-emerald-400">
+                    {Math.round(sub.qualityScore * 100)}%
+                  </span>
+                  <p className="text-[10px] text-neutral-500">Quality</p>
+                </div>
+              )}
+              <Badge variant={statusVariant[sub.status] ?? "outline"}>
+                {sub.status}
+              </Badge>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  window.location.href = `/api/projects/${projectId}/submissions/${sub.id}/export`;
+                }}
+                className="h-8 gap-1 border-neutral-700 bg-neutral-800 text-xs hover:border-emerald-500/50 hover:bg-neutral-800 hover:text-emerald-400 shadow-sm"
+              >
+                <Download size={12} />
+                Export ZIP
+              </Button>
+              <ChevronRight
+                size={16}
+                className="text-neutral-600 transition-colors group-hover:text-neutral-400"
+              />
             </div>
-            {sub.qualityScore != null && (
-              <span className="text-xs font-medium text-emerald-400">
-                {(sub.qualityScore * 100).toFixed(0)}%
-              </span>
-            )}
-            <Badge variant={statusVariant[sub.status] ?? "outline"}>
-              {sub.status}
-            </Badge>
-            <ChevronRight
-              size={16}
-              className="text-neutral-600 transition-colors group-hover:text-neutral-400"
-            />
-          </motion.button>
-        </StaggerItem>
-      ))}
-    </StaggerContainer>
+          </StaggerItem>
+        ))}
+      </StaggerContainer>
+    </div>
   );
 }
 
@@ -579,6 +610,42 @@ function KnowledgeBaseTab({ projectId }: { projectId: string }) {
     }
   };
 
+  // ZIP upload state
+  const [uploadingZip, setUploadingZip] = useState(false);
+  const zipInputRef = useRef<HTMLInputElement>(null);
+
+  const handleZipUpload = async (file: File) => {
+    if (!file.name.toLowerCase().endsWith(".zip")) {
+      toast({ type: "error", title: "Please select a .zip archive" });
+      return;
+    }
+    setUploadingZip(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("repoUrl", form.repoUrl || "https://github.com/example/repo");
+      formData.append("commitHash", form.commitHash || "1a2b3c4d5e6f");
+      formData.append("language", form.language || "Python");
+      formData.append("category", form.category || "BUGFIX");
+
+      const res = await fetch(`/api/projects/${projectId}/examples`, {
+        method: "POST",
+        body: formData,
+      });
+      if (!res.ok) throw new Error();
+      toast({
+        type: "success",
+        title: "Approved Task ZIP Ingested",
+        description: "Extracted task.md, patches & built Knowledge Tree patterns",
+      });
+      fetchExamples();
+    } catch {
+      toast({ type: "error", title: "Failed to upload task ZIP" });
+    } finally {
+      setUploadingZip(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="space-y-3">
@@ -591,16 +658,61 @@ function KnowledgeBaseTab({ projectId }: { projectId: string }) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="text-sm font-medium text-neutral-400">
-          Approved Task Examples ({examples.length})
-        </h3>
-        <div className="flex gap-2">
-          <Button size="sm" variant="outline" onClick={() => setShowForm(!showForm)}>
-            <Upload size={14} />
-            {showForm ? "Cancel" : "Add Example"}
-          </Button>
+      {/* ZIP Upload Card */}
+      <GlassPanel className="p-6 relative overflow-hidden" gradient>
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500/20 to-cyan-500/20 text-emerald-400 border border-emerald-500/30 shrink-0">
+              <FileArchive size={24} />
+            </div>
+            <div>
+              <h4 className="text-sm font-semibold text-neutral-100">
+                Upload Approved Task Example (.ZIP)
+              </h4>
+              <p className="text-xs text-neutral-400">
+                Drop your approved task zip package. The agent extracts task.md, test.sh, test.patch, solution.patch, Dockerfile & learns the exact benchmark rules and human prompt style.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <input
+              ref={zipInputRef}
+              type="file"
+              accept=".zip"
+              className="hidden"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) handleZipUpload(f);
+              }}
+            />
+            <Button
+              onClick={() => zipInputRef.current?.click()}
+              disabled={uploadingZip}
+              className="bg-gradient-to-r from-emerald-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 gap-1.5 shadow-lg shadow-emerald-500/10"
+            >
+              {uploadingZip ? (
+                <>
+                  <Loader2 size={14} className="animate-spin" />
+                  Unpacking & Learning...
+                </>
+              ) : (
+                <>
+                  <Upload size={14} />
+                  Upload Approved ZIP
+                </>
+              )}
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => setShowForm(!showForm)}>
+              {showForm ? "Hide Manual Form" : "Manual Form"}
+            </Button>
+          </div>
         </div>
+      </GlassPanel>
+
+      <div className="flex items-center justify-between pt-2">
+        <h3 className="text-sm font-medium text-neutral-400">
+          Approved Task Knowledge Base ({examples.length})
+        </h3>
       </div>
 
       {/* Add Example Form */}
@@ -801,8 +913,6 @@ function AgentRunsTab({ projectId }: { projectId: string }) {
   const [loading, setLoading] = useState(true);
   const [starting, setStarting] = useState(false);
   const [expandedRun, setExpandedRun] = useState<string | null>(null);
-  const [pipelineRunning, setPipelineRunning] = useState(false);
-  const [pipelineStep, setPipelineStep] = useState(0);
 
   const fetchRuns = useCallback(async () => {
     try {
@@ -820,6 +930,28 @@ function AgentRunsTab({ projectId }: { projectId: string }) {
     fetchRuns();
   }, [fetchRuns]);
 
+  // Auto-polling when any run is running or queued
+  useEffect(() => {
+    const hasActiveRun = runs.some(
+      (r) => r.status === "RUNNING" || r.status === "QUEUED"
+    );
+    if (!hasActiveRun) return;
+
+    const interval = setInterval(() => {
+      fetchRuns();
+    }, 2500);
+
+    return () => clearInterval(interval);
+  }, [runs, fetchRuns]);
+
+  const activeRun = runs.find((r) => r.status === "RUNNING");
+  const queuedRun = runs.slice().reverse().find((r) => r.status === "QUEUED");
+  const currentRunningStep = activeRun?.type ?? queuedRun?.type ?? null;
+  const isPipelineActive = runs.some((r) => r.status === "RUNNING" || r.status === "QUEUED");
+  const currentStepIndex = currentRunningStep
+    ? PIPELINE_STEPS.indexOf(currentRunningStep as (typeof PIPELINE_STEPS)[number])
+    : -1;
+
   const startAgent = async (type: string) => {
     setStarting(true);
     try {
@@ -828,36 +960,50 @@ function AgentRunsTab({ projectId }: { projectId: string }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ type }),
       });
-      if (!res.ok) throw new Error();
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || `Failed to start ${type} agent`);
+      }
       toast({ type: "success", title: `${type} agent run started` });
       fetchRuns();
-    } catch {
-      toast({ type: "error", title: "Failed to start agent" });
+    } catch (err: unknown) {
+      toast({
+        type: "error",
+        title: "Failed to start agent",
+        description: err instanceof Error ? err.message : "Server error",
+      });
     } finally {
       setStarting(false);
     }
   };
 
   const startFullPipeline = async () => {
-    setPipelineRunning(true);
-    setPipelineStep(0);
-    for (let i = 0; i < PIPELINE_STEPS.length; i++) {
-      setPipelineStep(i);
-      try {
-        const res = await fetch(`/api/projects/${projectId}/agent`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ type: PIPELINE_STEPS[i] }),
-        });
-        if (!res.ok) throw new Error();
-        toast({ type: "success", title: `${PIPELINE_STEPS[i]} started` });
-        await fetchRuns();
-      } catch {
-        toast({ type: "error", title: `Failed to start ${PIPELINE_STEPS[i]}` });
-        break;
+    setStarting(true);
+    try {
+      const res = await fetch(`/api/projects/${projectId}/agent`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: "FULL_PIPELINE" }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || "Failed to start full pipeline");
       }
+      toast({
+        type: "success",
+        title: "Autonomous Pipeline Initiated",
+        description: "Executing CRAWL → ANALYZE → GENERATE → VALIDATE in background",
+      });
+      await fetchRuns();
+    } catch (err: unknown) {
+      toast({
+        type: "error",
+        title: "Failed to start pipeline",
+        description: err instanceof Error ? err.message : "Server error",
+      });
+    } finally {
+      setStarting(false);
     }
-    setPipelineRunning(false);
   };
 
   if (loading) {
@@ -886,13 +1032,18 @@ function AgentRunsTab({ projectId }: { projectId: string }) {
           </div>
           <Button
             onClick={startFullPipeline}
-            disabled={pipelineRunning || starting}
+            disabled={isPipelineActive || starting}
             className="bg-gradient-to-r from-emerald-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 shadow-lg shadow-emerald-500/10"
           >
-            {pipelineRunning ? (
+            {isPipelineActive ? (
               <>
                 <Loader2 size={14} className="animate-spin" />
-                Running {PIPELINE_STEPS[pipelineStep]}...
+                Pipeline Active ({currentRunningStep ?? "Processing"})...
+              </>
+            ) : starting ? (
+              <>
+                <Loader2 size={14} className="animate-spin" />
+                Starting...
               </>
             ) : (
               <>
@@ -902,7 +1053,7 @@ function AgentRunsTab({ projectId }: { projectId: string }) {
             )}
           </Button>
         </div>
-        {pipelineRunning && (
+        {isPipelineActive && (
           <div className="mt-3 flex gap-1">
             {PIPELINE_STEPS.map((step, i) => (
               <div key={step} className="flex-1">
@@ -910,15 +1061,20 @@ function AgentRunsTab({ projectId }: { projectId: string }) {
                 <div className="h-1.5 rounded-full overflow-hidden bg-neutral-800">
                   <motion.div
                     className={`h-full rounded-full ${
-                      i < pipelineStep
+                      currentStepIndex >= 0 && i < currentStepIndex
                         ? "bg-emerald-500"
-                        : i === pipelineStep
+                        : i === currentStepIndex
                         ? "bg-cyan-500"
                         : "bg-neutral-700"
                     }`}
                     initial={{ width: "0%" }}
                     animate={{
-                      width: i < pipelineStep ? "100%" : i === pipelineStep ? "60%" : "0%",
+                      width:
+                        currentStepIndex >= 0 && i < currentStepIndex
+                          ? "100%"
+                          : i === currentStepIndex
+                          ? `${activeRun?.progress ?? 50}%`
+                          : "0%",
                     }}
                     transition={{ duration: 0.5 }}
                   />
@@ -936,7 +1092,7 @@ function AgentRunsTab({ projectId }: { projectId: string }) {
             key={type}
             size="sm"
             variant="outline"
-            disabled={starting || pipelineRunning}
+            disabled={starting || isPipelineActive}
             onClick={() => startAgent(type)}
             className="transition-all hover:border-emerald-500/30 hover:shadow-[0_0_15px_-5px_rgba(16,185,129,0.2)]"
           >
@@ -1037,7 +1193,7 @@ function AgentRunsTab({ projectId }: { projectId: string }) {
                         transition={{ duration: 0.2 }}
                         className="overflow-hidden"
                       >
-                        <div className="border-t border-neutral-800 bg-neutral-950/50 p-4">
+                        <div className="border-t border-neutral-800 bg-neutral-950/70 p-4">
                           {run.error && (
                             <div className="mb-3 rounded-lg border border-red-500/20 bg-red-950/30 p-3 text-xs text-red-400">
                               <AlertTriangle
@@ -1047,19 +1203,61 @@ function AgentRunsTab({ projectId }: { projectId: string }) {
                               {run.error}
                             </div>
                           )}
-                          <p className="mb-2 text-xs font-medium text-neutral-400">
-                            Logs
-                          </p>
-                          <div className="max-h-64 overflow-y-auto rounded-lg bg-black p-3 font-mono text-xs text-neutral-400">
+                          <div className="mb-2 flex items-center justify-between text-xs">
+                            <div className="flex items-center gap-2 text-neutral-400">
+                              <div className="flex gap-1.5">
+                                <span className="h-2 w-2 rounded-full bg-red-500/70" />
+                                <span className="h-2 w-2 rounded-full bg-yellow-500/70" />
+                                <span className="h-2 w-2 rounded-full bg-green-500/70" />
+                              </div>
+                              <span className="font-mono text-[11px] text-neutral-500">
+                                agent.log {run.status === "RUNNING" && "— streaming"}
+                              </span>
+                            </div>
+                            <span className="text-[11px] text-neutral-600 font-mono">
+                              {parsedLogs.length} entries
+                            </span>
+                          </div>
+                          <div className="max-h-72 overflow-y-auto rounded-lg bg-black/90 border border-neutral-800/80 p-3 font-mono text-xs">
                             {parsedLogs.length > 0 ? (
-                              parsedLogs.map((log, i) => (
-                                <div key={i} className="py-0.5">
-                                  <span className="text-neutral-600 mr-2">
-                                    {String(i + 1).padStart(3, " ")}
-                                  </span>
-                                  {log}
-                                </div>
-                              ))
+                              parsedLogs.map((log, i) => {
+                                let logColor = "text-neutral-300";
+                                if (
+                                  log.includes("[SUCCESS]") ||
+                                  log.includes("✔") ||
+                                  log.toLowerCase().includes("passed")
+                                ) {
+                                  logColor = "text-emerald-400";
+                                } else if (
+                                  log.includes("[ERROR]") ||
+                                  log.includes("✖") ||
+                                  log.toLowerCase().includes("failed")
+                                ) {
+                                  logColor = "text-rose-400";
+                                } else if (
+                                  log.includes("[WARN]") ||
+                                  log.includes("[CHECK]") ||
+                                  log.includes("──")
+                                ) {
+                                  logColor = "text-amber-400 font-semibold";
+                                } else if (
+                                  log.includes("[CRAWL]") ||
+                                  log.includes("[ANALYZE]") ||
+                                  log.includes("[GENERATE]") ||
+                                  log.includes("[VALIDATE]") ||
+                                  log.includes("[RESULT]")
+                                ) {
+                                  logColor = "text-cyan-400";
+                                }
+                                return (
+                                  <div key={i} className={`py-0.5 leading-relaxed ${logColor}`}>
+                                    <span className="text-neutral-600 mr-2 select-none">
+                                      {String(i + 1).padStart(3, " ")}
+                                    </span>
+                                    {log}
+                                  </div>
+                                );
+                              })
                             ) : (
                               <span className="text-neutral-600">
                                 No logs available

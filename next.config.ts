@@ -1,10 +1,12 @@
 import type { NextConfig } from "next";
+import path from "node:path";
 
 const nextConfig: NextConfig = {
   output: "standalone",
   cacheComponents: true,
   partialPrefetching: true,
   turbopack: {
+    root: path.resolve(__dirname),
     rules: {
       "*.css": {
         loaders: ["@tailwindcss/turbopack"],
@@ -15,3 +17,4 @@ const nextConfig: NextConfig = {
 };
 
 export default nextConfig;
+

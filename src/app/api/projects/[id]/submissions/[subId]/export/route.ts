@@ -1,8 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import * as archiver from "archiver";
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const createArchive = (archiver as any).default ?? archiver;
-import { PassThrough } from "node:stream";
+import JSZip from "jszip";
 import prisma from "@/lib/db";
 import { apiError, withErrorHandling } from "@/lib/api-helpers";
 
@@ -28,10 +25,7 @@ export const GET = withErrorHandling(
     });
     if (!submission) return apiError("Submission not found", 404);
 
-    // Build the zip in memory
-    const archive = createArchive("zip", { zlib: { level: 9 } });
-    const passthrough = new PassThrough();
-    archive.pipe(passthrough);
+    const zip = new JSZip();
 
     // task.md
     const taskMd = [
@@ -46,37 +40,34 @@ export const GET = withErrorHandling(
       "",
       submission.taskPrompt ?? "_No prompt provided_",
     ].join("\n");
-    archive.append(taskMd, { name: "task.md" });
+    zip.file("task.md", taskMd);
 
-    // Optional files
+    // Submission files
     if (submission.testSh) {
-      archive.append(submission.testSh, { name: "test.sh" });
+      zip.file("test.sh", submission.testSh);
     }
     if (submission.testPatch) {
-      archive.append(submission.testPatch, { name: "test.patch" });
+      zip.file("test.patch", submission.testPatch);
     }
     if (submission.solutionPatch) {
-      archive.append(submission.solutionPatch, { name: "solution.patch" });
+      zip.file("solution.patch", submission.solutionPatch);
     }
     if (submission.dockerfile) {
-      archive.append(submission.dockerfile, { name: "Dockerfile" });
+      zip.file("Dockerfile", submission.dockerfile);
     }
 
-    await archive.finalize();
+    const zipBuffer = await zip.generateAsync({
+      type: "nodebuffer",
+      compression: "DEFLATE",
+      compressionOptions: { level: 9 },
+    });
 
-    // Collect all chunks into a buffer
-    const chunks: Buffer[] = [];
-    for await (const chunk of passthrough) {
-      chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
-    }
-    const zipBuffer = Buffer.concat(chunks);
-
-    const slug = submission.taskTitle
+    const slug = (submission.taskTitle || "task")
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
       .slice(0, 60);
 
-    return new NextResponse(zipBuffer, {
+    return new NextResponse(zipBuffer as unknown as BodyInit, {
       status: 200,
       headers: {
         "Content-Type": "application/zip",
@@ -86,3 +77,4 @@ export const GET = withErrorHandling(
     });
   }
 );
+
