@@ -23,6 +23,7 @@ import {
   StaggerItem,
   FadeInSection,
 } from "@/components/animations/motion-components";
+import { AppShell } from "@/components/layout/sidebar";
 import {
   Plus,
   FolderOpen,
@@ -31,6 +32,8 @@ import {
   Star,
   Code2,
   Tag,
+  Upload,
+  Sparkles,
 } from "lucide-react";
 
 /* ------------------------------------------------------------------ */
@@ -146,27 +149,38 @@ function ProjectCard({
   return (
     <motion.button
       onClick={onClick}
-      whileHover={{ y: -2 }}
-      whileTap={{ scale: 0.98 }}
-      className="group relative w-full text-left rounded-xl border border-neutral-800 bg-neutral-900/50 p-6 backdrop-blur-sm transition-colors hover:border-neutral-700"
+      whileHover={{ y: -4, scale: 1.01 }}
+      whileTap={{ scale: 0.97 }}
+      className="group relative w-full text-left rounded-xl border border-neutral-800 bg-neutral-900/50 p-6 backdrop-blur-sm transition-all duration-300 hover:border-emerald-500/30 hover:shadow-[0_0_30px_-5px_rgba(16,185,129,0.15)]"
     >
-      {/* Gradient glow on hover */}
-      <div className="pointer-events-none absolute inset-0 rounded-xl bg-gradient-to-br from-emerald-500/5 via-transparent to-cyan-500/5 opacity-0 transition-opacity group-hover:opacity-100" />
+      {/* Animated gradient border on hover */}
+      <div className="pointer-events-none absolute -inset-px rounded-xl bg-gradient-to-br from-emerald-500/20 via-transparent to-cyan-500/20 opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+
+      {/* Glassmorphism overlay on hover */}
+      <div className="pointer-events-none absolute inset-0 rounded-xl bg-gradient-to-br from-emerald-500/5 via-transparent to-cyan-500/5 opacity-0 backdrop-blur-sm transition-opacity duration-300 group-hover:opacity-100" />
 
       <div className="relative z-10">
         {/* Header */}
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-2">
-            <div className="rounded-lg bg-gradient-to-br from-emerald-500/20 to-cyan-500/20 p-2">
+            <div className="rounded-lg bg-gradient-to-br from-emerald-500/20 to-cyan-500/20 p-2 transition-all duration-300 group-hover:from-emerald-500/30 group-hover:to-cyan-500/30 group-hover:shadow-[0_0_15px_-3px_rgba(16,185,129,0.3)]">
               <FolderOpen size={16} className="text-emerald-400" />
             </div>
-            <h3 className="text-base font-semibold text-neutral-100">
+            <h3 className="text-base font-semibold text-neutral-100 transition-colors group-hover:text-white">
               {project.name}
             </h3>
           </div>
-          <Badge variant={statusVariant[project.status] ?? "outline"}>
-            {project.status}
-          </Badge>
+          <div className="flex items-center gap-2">
+            {project.status === "ACTIVE" && (
+              <span className="relative flex h-2.5 w-2.5">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+                <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500" />
+              </span>
+            )}
+            <Badge variant={statusVariant[project.status] ?? "outline"}>
+              {project.status}
+            </Badge>
+          </div>
         </div>
 
         {/* Description */}
@@ -182,7 +196,7 @@ function ProjectCard({
             {project.targetLanguages.slice(0, 4).map((lang) => (
               <span
                 key={lang}
-                className="inline-flex items-center gap-1 rounded-md bg-neutral-800 px-2 py-0.5 text-xs text-neutral-300"
+                className="inline-flex items-center gap-1 rounded-md bg-neutral-800/80 px-2 py-0.5 text-xs text-neutral-300 border border-neutral-700/50"
               >
                 <Code2 size={10} />
                 {lang}
@@ -270,13 +284,14 @@ export default function ProjectsPage() {
   const [languages, setLanguages] = useState<string[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
   const [minStars, setMinStars] = useState("500");
+  const [requirementsDoc, setRequirementsDoc] = useState("");
 
   const fetchProjects = useCallback(async () => {
     try {
       const res = await fetch("/api/projects");
       if (!res.ok) throw new Error("Failed to load projects");
-      const data = await res.json();
-      setProjects(data);
+      const json = await res.json();
+      setProjects(json.data ?? json);
     } catch {
       toast({ type: "error", title: "Failed to load projects" });
     } finally {
@@ -304,6 +319,7 @@ export default function ProjectsPage() {
           targetLanguages: languages,
           targetCategories: categories,
           minStars: parseInt(minStars) || 500,
+          requirementsDoc: requirementsDoc.trim() || null,
         }),
       });
       if (!res.ok) throw new Error("Failed to create project");
@@ -315,6 +331,7 @@ export default function ProjectsPage() {
       setLanguages([]);
       setCategories([]);
       setMinStars("500");
+      setRequirementsDoc("");
       fetchProjects();
     } catch {
       toast({ type: "error", title: "Failed to create project" });
@@ -324,138 +341,165 @@ export default function ProjectsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-neutral-950 px-4 py-8 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-7xl">
-        {/* Header */}
-        <FadeInSection>
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight text-neutral-100">
-                Your Projects
-              </h1>
-              <p className="mt-1 text-sm text-neutral-400">
-                Manage Olympus challenge automation projects
-              </p>
-            </div>
-
-            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-              <DialogTrigger asChild>
-                <Button className="bg-gradient-to-r from-emerald-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500">
-                  <Plus size={16} />
-                  New Project
-                </Button>
-              </DialogTrigger>
-
-              <DialogContent className="max-w-xl">
-                <DialogHeader>
-                  <DialogTitle>Create New Project</DialogTitle>
-                  <DialogDescription>
-                    Set up a new Olympus challenge automation project.
-                  </DialogDescription>
-                </DialogHeader>
-
-                <DialogBody className="space-y-4">
-                  <Input
-                    label="Project Name"
-                    placeholder="e.g. TypeScript Feature Challenges"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                  />
-                  <div>
-                    <label className="mb-1.5 block text-sm font-medium text-neutral-300">
-                      Description
-                    </label>
-                    <textarea
-                      className="flex w-full rounded-lg border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm text-neutral-100 placeholder:text-neutral-500 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 focus:ring-offset-neutral-950 hover:border-neutral-600"
-                      rows={3}
-                      placeholder="Describe this project's goals..."
-                      value={description}
-                      onChange={(e) => setDescription(e.target.value)}
-                    />
+    <AppShell>
+      <div className="min-h-screen bg-neutral-950">
+        <div className="mx-auto max-w-7xl">
+          {/* Header */}
+          <FadeInSection>
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="flex items-center gap-3">
+                  <div className="rounded-xl bg-gradient-to-br from-emerald-500/20 to-cyan-500/20 p-2.5">
+                    <Sparkles size={20} className="text-emerald-400" />
                   </div>
-                  <MultiSelect
-                    label="Target Languages"
-                    options={LANGUAGES}
-                    selected={languages}
-                    onChange={setLanguages}
-                  />
-                  <MultiSelect
-                    label="Target Categories"
-                    options={CATEGORIES}
-                    selected={categories}
-                    onChange={setCategories}
-                  />
-                  <Input
-                    label="Minimum Stars"
-                    type="number"
-                    placeholder="500"
-                    value={minStars}
-                    onChange={(e) => setMinStars(e.target.value)}
-                    helperText="Minimum GitHub stars for target repositories"
-                  />
-                </DialogBody>
-
-                <DialogFooter>
-                  <Button
-                    variant="outline"
-                    onClick={() => setDialogOpen(false)}
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    onClick={handleCreate}
-                    disabled={creating}
-                    className="bg-gradient-to-r from-emerald-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500"
-                  >
-                    {creating ? "Creating..." : "Create Project"}
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-          </div>
-        </FadeInSection>
-
-        {/* Content */}
-        <div className="mt-8">
-          {loading ? (
-            <ProjectSkeletons />
-          ) : projects.length === 0 ? (
-            <FadeInSection>
-              <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-neutral-700 bg-neutral-900/30 py-16">
-                <div className="rounded-full bg-neutral-800 p-4">
-                  <FolderOpen size={32} className="text-neutral-500" />
+                  <div>
+                    <h1 className="text-3xl font-bold tracking-tight text-neutral-100">
+                      Your Projects
+                    </h1>
+                    <p className="mt-0.5 text-sm text-neutral-400">
+                      Manage Olympus challenge automation projects
+                    </p>
+                  </div>
                 </div>
-                <h3 className="mt-4 text-lg font-medium text-neutral-300">
-                  No projects yet
-                </h3>
-                <p className="mt-1 text-sm text-neutral-500">
-                  Create your first Olympus challenge project to get started.
-                </p>
-                <Button
-                  className="mt-4 bg-gradient-to-r from-emerald-600 to-cyan-600"
-                  onClick={() => setDialogOpen(true)}
-                >
-                  <Plus size={16} />
-                  Create Project
-                </Button>
               </div>
-            </FadeInSection>
-          ) : (
-            <StaggerContainer className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-              <AnimatePresence>
-                {projects.map((project) => (
-                  <StaggerItem key={project.id}>
-                    <ProjectCard
-                      project={project}
-                      onClick={() => router.push(`/projects/${project.id}`)}
+
+              <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button className="bg-gradient-to-r from-emerald-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 shadow-lg shadow-emerald-500/10">
+                    <Plus size={16} />
+                    New Project
+                  </Button>
+                </DialogTrigger>
+
+                <DialogContent className="max-w-2xl">
+                  <DialogHeader>
+                    <DialogTitle>Create New Project</DialogTitle>
+                    <DialogDescription>
+                      Set up a new Olympus challenge automation project.
+                    </DialogDescription>
+                  </DialogHeader>
+
+                  <DialogBody className="space-y-4">
+                    <Input
+                      label="Project Name"
+                      placeholder="e.g. TypeScript Feature Challenges"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
                     />
-                  </StaggerItem>
-                ))}
-              </AnimatePresence>
-            </StaggerContainer>
-          )}
+                    <div>
+                      <label className="mb-1.5 block text-sm font-medium text-neutral-300">
+                        Description
+                      </label>
+                      <textarea
+                        className="flex w-full rounded-lg border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm text-neutral-100 placeholder:text-neutral-500 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 hover:border-neutral-600"
+                        rows={3}
+                        placeholder="Describe this project goals..."
+                        value={description}
+                        onChange={(e) => setDescription(e.target.value)}
+                      />
+                    </div>
+                    <MultiSelect
+                      label="Target Languages"
+                      options={LANGUAGES}
+                      selected={languages}
+                      onChange={setLanguages}
+                    />
+                    <MultiSelect
+                      label="Target Categories"
+                      options={CATEGORIES}
+                      selected={categories}
+                      onChange={setCategories}
+                    />
+                    <Input
+                      label="Minimum Stars"
+                      type="number"
+                      placeholder="500"
+                      value={minStars}
+                      onChange={(e) => setMinStars(e.target.value)}
+                      helperText="Minimum GitHub stars for target repositories"
+                    />
+
+                    {/* Requirements Document */}
+                    <div>
+                      <label className="mb-1.5 flex items-center gap-2 text-sm font-medium text-neutral-300">
+                        <FileText size={14} className="text-emerald-400" />
+                        Requirements Document
+                      </label>
+                      <p className="mb-2 text-xs text-neutral-500">
+                        Paste the Olympus requirements document to guide the agent pipeline.
+                      </p>
+                      <textarea
+                        className="w-full rounded-lg border border-neutral-700 bg-neutral-950 px-3 py-2.5 font-mono text-xs text-neutral-100 placeholder:text-neutral-600 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 hover:border-neutral-600"
+                        rows={8}
+                        placeholder="Paste the full Olympus requirements document here..."
+                        value={requirementsDoc}
+                        onChange={(e) => setRequirementsDoc(e.target.value)}
+                      />
+                    </div>
+                  </DialogBody>
+
+                  <DialogFooter>
+                    <Button
+                      variant="outline"
+                      onClick={() => setDialogOpen(false)}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      onClick={handleCreate}
+                      disabled={creating}
+                      className="bg-gradient-to-r from-emerald-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500"
+                    >
+                      {creating ? "Creating..." : "Create Project"}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </div>
+          </FadeInSection>
+
+          {/* Content */}
+          <div className="mt-8">
+            {loading ? (
+              <ProjectSkeletons />
+            ) : projects.length === 0 ? (
+              <FadeInSection>
+                <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-neutral-700 bg-neutral-900/30 py-16 backdrop-blur-sm">
+                  <div className="rounded-full bg-gradient-to-br from-neutral-800 to-neutral-900 p-4 shadow-lg">
+                    <FolderOpen size={32} className="text-neutral-500" />
+                  </div>
+                  <h3 className="mt-4 text-lg font-medium text-neutral-300">
+                    No projects yet
+                  </h3>
+                  <p className="mt-1 text-sm text-neutral-500">
+                    Create your first Olympus challenge project to get started.
+                  </p>
+                  <Button
+                    className="mt-4 bg-gradient-to-r from-emerald-600 to-cyan-600 shadow-lg shadow-emerald-500/10"
+                    onClick={() => setDialogOpen(true)}
+                  >
+                    <Plus size={16} />
+                    Create Project
+                  </Button>
+                </div>
+              </FadeInSection>
+            ) : (
+              <StaggerContainer className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+                <AnimatePresence>
+                  {projects.map((project) => (
+                    <StaggerItem key={project.id}>
+                      <ProjectCard
+                        project={project}
+                        onClick={() => router.push(`/projects/${project.id}`)}
+                      />
+                    </StaggerItem>
+                  ))}
+                </AnimatePresence>
+              </StaggerContainer>
+            )}
+          </div>
         </div>
       </div>
-    </div>
+    </AppShell>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,7 @@ import {
   PulseIndicator,
   AnimatedProgress,
 } from "@/components/animations/motion-components";
+import { AppShell } from "@/components/layout/sidebar";
 import {
   Play,
   Pause,
@@ -37,6 +38,12 @@ import {
   Zap,
   BarChart3,
   Code2,
+  Sparkles,
+  Save,
+  Edit3,
+  FileUp,
+  Rocket,
+  Loader2,
 } from "lucide-react";
 
 /* ------------------------------------------------------------------ */
@@ -115,6 +122,8 @@ const statusVariant: Record<string, "default" | "success" | "warning" | "error" 
   CANCELLED: "error",
 };
 
+const PIPELINE_STEPS = ["CRAWL", "ANALYZE", "GENERATE", "VALIDATE"] as const;
+
 /* ------------------------------------------------------------------ */
 /* Glass Panel wrapper                                                 */
 /* ------------------------------------------------------------------ */
@@ -122,13 +131,15 @@ const statusVariant: Record<string, "default" | "success" | "warning" | "error" 
 function GlassPanel({
   children,
   className = "",
+  gradient = false,
 }: {
   children: React.ReactNode;
   className?: string;
+  gradient?: boolean;
 }) {
   return (
     <div
-      className={`rounded-xl border border-neutral-800 bg-neutral-900/50 backdrop-blur-sm ${className}`}
+      className={`rounded-xl border border-neutral-800 bg-neutral-900/50 backdrop-blur-sm ${gradient ? "bg-gradient-to-br from-neutral-900/80 via-neutral-900/50 to-neutral-900/80" : ""} ${className}`}
     >
       {children}
     </div>
@@ -139,11 +150,42 @@ function GlassPanel({
 /* Overview Tab                                                        */
 /* ------------------------------------------------------------------ */
 
-function OverviewTab({ project }: { project: Project }) {
+function OverviewTab({
+  project,
+  onProjectUpdate,
+}: {
+  project: Project;
+  onProjectUpdate: (p: Project) => void;
+}) {
+  const { toast } = useToast();
+  const [editingReqs, setEditingReqs] = useState(false);
+  const [reqsDoc, setReqsDoc] = useState(project.requirementsDoc || "");
+  const [savingReqs, setSavingReqs] = useState(false);
+
   const counts = project._count ?? {
     challengeSubmissions: 0,
     approvedTaskExamples: 0,
     agentRuns: 0,
+  };
+
+  const handleSaveReqs = async () => {
+    setSavingReqs(true);
+    try {
+      const res = await fetch(`/api/projects/${project.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ requirementsDoc: reqsDoc.trim() || null }),
+      });
+      if (!res.ok) throw new Error();
+      const updated = (await res.json()).data;
+      onProjectUpdate(updated);
+      setEditingReqs(false);
+      toast({ type: "success", title: "Requirements document saved" });
+    } catch {
+      toast({ type: "error", title: "Failed to save requirements" });
+    } finally {
+      setSavingReqs(false);
+    }
   };
 
   return (
@@ -178,7 +220,7 @@ function OverviewTab({ project }: { project: Project }) {
 
       {/* Project details */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <GlassPanel className="p-6">
+        <GlassPanel className="p-6" gradient>
           <h3 className="text-sm font-medium text-neutral-400">
             Project Details
           </h3>
@@ -208,7 +250,7 @@ function OverviewTab({ project }: { project: Project }) {
           </div>
         </GlassPanel>
 
-        <GlassPanel className="p-6">
+        <GlassPanel className="p-6" gradient>
           <h3 className="text-sm font-medium text-neutral-400">
             Target Configuration
           </h3>
@@ -265,6 +307,76 @@ function OverviewTab({ project }: { project: Project }) {
           </p>
         </GlassPanel>
       )}
+
+      {/* Requirements Document */}
+      <GlassPanel className="p-6" gradient>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="rounded-lg bg-gradient-to-br from-emerald-500/20 to-cyan-500/20 p-1.5">
+              <FileText size={14} className="text-emerald-400" />
+            </div>
+            <h3 className="text-sm font-medium text-neutral-400">
+              Requirements Document
+            </h3>
+          </div>
+          {!editingReqs ? (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => {
+                setReqsDoc(project.requirementsDoc || "");
+                setEditingReqs(true);
+              }}
+            >
+              <Edit3 size={12} />
+              Edit Requirements
+            </Button>
+          ) : (
+            <div className="flex gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setEditingReqs(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                size="sm"
+                onClick={handleSaveReqs}
+                disabled={savingReqs}
+                className="bg-gradient-to-r from-emerald-600 to-cyan-600"
+              >
+                {savingReqs ? <Loader2 size={12} className="animate-spin" /> : <Save size={12} />}
+                Save
+              </Button>
+            </div>
+          )}
+        </div>
+        <div className="mt-3">
+          {editingReqs ? (
+            <textarea
+              className="w-full rounded-lg border border-emerald-500/30 bg-neutral-950 px-4 py-3 font-mono text-xs text-neutral-100 placeholder:text-neutral-600 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+              rows={16}
+              placeholder="Paste the Olympus requirements document here..."
+              value={reqsDoc}
+              onChange={(e) => setReqsDoc(e.target.value)}
+            />
+          ) : project.requirementsDoc ? (
+            <div className="max-h-96 overflow-y-auto rounded-lg bg-neutral-950/80 border border-neutral-800 px-4 py-3">
+              <pre className="whitespace-pre-wrap font-mono text-xs text-neutral-300 leading-relaxed">
+                {project.requirementsDoc}
+              </pre>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-neutral-700 py-8">
+              <FileText size={24} className="text-neutral-600" />
+              <p className="mt-2 text-xs text-neutral-500">
+                No requirements document yet. Click Edit to add one.
+              </p>
+            </div>
+          )}
+        </div>
+      </GlassPanel>
     </div>
   );
 }
@@ -284,7 +396,7 @@ function SubmissionsTab({ projectId }: { projectId: string }) {
       try {
         const res = await fetch(`/api/projects/${projectId}/submissions`);
         if (!res.ok) throw new Error();
-        setSubmissions(await res.json());
+        setSubmissions((await res.json()).data ?? []);
       } catch {
         toast({ type: "error", title: "Failed to load submissions" });
       } finally {
@@ -335,7 +447,7 @@ function SubmissionsTab({ projectId }: { projectId: string }) {
               )
             }
             whileHover={{ x: 2 }}
-            className="group flex w-full items-center gap-4 rounded-lg border border-neutral-800 bg-neutral-900/50 p-4 text-left transition-colors hover:border-neutral-700"
+            className="group flex w-full items-center gap-4 rounded-lg border border-neutral-800 bg-neutral-900/50 p-4 text-left transition-all hover:border-neutral-700 hover:shadow-[0_0_20px_-5px_rgba(16,185,129,0.1)]"
           >
             <div className="rounded-lg bg-neutral-800 p-2.5">
               <FileText size={16} className="text-neutral-400" />
@@ -398,11 +510,20 @@ function KnowledgeBaseTab({ projectId }: { projectId: string }) {
     testSh: "",
   });
 
+  // File input refs for each text field
+  const fileInputRefs = {
+    taskPrompt: useRef<HTMLInputElement>(null),
+    testPatch: useRef<HTMLInputElement>(null),
+    solutionPatch: useRef<HTMLInputElement>(null),
+    dockerfile: useRef<HTMLInputElement>(null),
+    testSh: useRef<HTMLInputElement>(null),
+  };
+
   const fetchExamples = useCallback(async () => {
     try {
       const res = await fetch(`/api/projects/${projectId}/examples`);
       if (!res.ok) throw new Error();
-      setExamples(await res.json());
+      setExamples((await res.json()).data ?? []);
     } catch {
       toast({ type: "error", title: "Failed to load examples" });
     } finally {
@@ -413,6 +534,16 @@ function KnowledgeBaseTab({ projectId }: { projectId: string }) {
   useEffect(() => {
     fetchExamples();
   }, [fetchExamples]);
+
+  const handleFileLoad = (key: string, file: File) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const text = e.target?.result as string;
+      setForm((prev) => ({ ...prev, [key]: text }));
+      toast({ type: "success", title: `Loaded ${file.name}` });
+    };
+    reader.readAsText(file);
+  };
 
   const handleSave = async () => {
     if (!form.repoUrl || !form.taskPrompt) {
@@ -464,10 +595,12 @@ function KnowledgeBaseTab({ projectId }: { projectId: string }) {
         <h3 className="text-sm font-medium text-neutral-400">
           Approved Task Examples ({examples.length})
         </h3>
-        <Button size="sm" variant="outline" onClick={() => setShowForm(!showForm)}>
-          <Upload size={14} />
-          {showForm ? "Cancel" : "Add Example"}
-        </Button>
+        <div className="flex gap-2">
+          <Button size="sm" variant="outline" onClick={() => setShowForm(!showForm)}>
+            <Upload size={14} />
+            {showForm ? "Cancel" : "Add Example"}
+          </Button>
+        </div>
       </div>
 
       {/* Add Example Form */}
@@ -479,7 +612,11 @@ function KnowledgeBaseTab({ projectId }: { projectId: string }) {
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.2 }}
           >
-            <GlassPanel className="space-y-4 p-6">
+            <GlassPanel className="space-y-4 p-6" gradient>
+              <div className="flex items-center gap-2 mb-2">
+                <Sparkles size={16} className="text-emerald-400" />
+                <h4 className="text-sm font-medium text-neutral-200">Add Approved Task Example</h4>
+              </div>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <Input
                   label="Repo URL"
@@ -515,11 +652,31 @@ function KnowledgeBaseTab({ projectId }: { projectId: string }) {
                 />
               </div>
               <div>
-                <label className="mb-1.5 block text-sm font-medium text-neutral-300">
-                  Task Prompt
-                </label>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="text-sm font-medium text-neutral-300">
+                    Task Prompt
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => fileInputRefs.taskPrompt.current?.click()}
+                    className="flex items-center gap-1 text-xs text-cyan-400 hover:text-cyan-300 transition-colors"
+                  >
+                    <FileUp size={10} />
+                    Load from file
+                  </button>
+                  <input
+                    ref={fileInputRefs.taskPrompt}
+                    type="file"
+                    accept=".md,.txt"
+                    className="hidden"
+                    onChange={(e) => {
+                      const f = e.target.files?.[0];
+                      if (f) handleFileLoad("taskPrompt", f);
+                    }}
+                  />
+                </div>
                 <textarea
-                  className="w-full rounded-lg border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm text-neutral-100 placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full rounded-lg border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm text-neutral-100 placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
                   rows={4}
                   placeholder="Describe the task..."
                   value={form.taskPrompt}
@@ -538,13 +695,32 @@ function KnowledgeBaseTab({ projectId }: { projectId: string }) {
                   ] as const
                 ).map(([key, label]) => (
                   <div key={key}>
-                    <label className="mb-1.5 block text-sm font-medium text-neutral-300">
-                      {label}
-                    </label>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="text-sm font-medium text-neutral-300">
+                        {label}
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => fileInputRefs[key].current?.click()}
+                        className="flex items-center gap-1 text-xs text-cyan-400 hover:text-cyan-300 transition-colors"
+                      >
+                        <FileUp size={10} />
+                        Load file
+                      </button>
+                      <input
+                        ref={fileInputRefs[key]}
+                        type="file"
+                        className="hidden"
+                        onChange={(e) => {
+                          const f = e.target.files?.[0];
+                          if (f) handleFileLoad(key, f);
+                        }}
+                      />
+                    </div>
                     <textarea
-                      className="w-full rounded-lg border border-neutral-700 bg-neutral-950 px-3 py-2 font-mono text-xs text-neutral-100 placeholder:text-neutral-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full rounded-lg border border-neutral-700 bg-neutral-950 px-3 py-2 font-mono text-xs text-neutral-100 placeholder:text-neutral-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
                       rows={6}
-                      placeholder={`Paste ${label} content...`}
+                      placeholder={`Paste ${label} content or load from file...`}
                       value={form[key]}
                       onChange={(e) =>
                         setForm({ ...form, [key]: e.target.value })
@@ -579,7 +755,7 @@ function KnowledgeBaseTab({ projectId }: { projectId: string }) {
         <StaggerContainer className="space-y-2">
           {examples.map((ex) => (
             <StaggerItem key={ex.id}>
-              <GlassPanel className="p-4">
+              <GlassPanel className="p-4 transition-all hover:border-neutral-700">
                 <div className="flex items-start justify-between">
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-medium text-neutral-200 line-clamp-2">
@@ -625,12 +801,14 @@ function AgentRunsTab({ projectId }: { projectId: string }) {
   const [loading, setLoading] = useState(true);
   const [starting, setStarting] = useState(false);
   const [expandedRun, setExpandedRun] = useState<string | null>(null);
+  const [pipelineRunning, setPipelineRunning] = useState(false);
+  const [pipelineStep, setPipelineStep] = useState(0);
 
   const fetchRuns = useCallback(async () => {
     try {
       const res = await fetch(`/api/projects/${projectId}/agent`);
       if (!res.ok) throw new Error();
-      setRuns(await res.json());
+      setRuns((await res.json()).data ?? []);
     } catch {
       toast({ type: "error", title: "Failed to load agent runs" });
     } finally {
@@ -660,6 +838,28 @@ function AgentRunsTab({ projectId }: { projectId: string }) {
     }
   };
 
+  const startFullPipeline = async () => {
+    setPipelineRunning(true);
+    setPipelineStep(0);
+    for (let i = 0; i < PIPELINE_STEPS.length; i++) {
+      setPipelineStep(i);
+      try {
+        const res = await fetch(`/api/projects/${projectId}/agent`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ type: PIPELINE_STEPS[i] }),
+        });
+        if (!res.ok) throw new Error();
+        toast({ type: "success", title: `${PIPELINE_STEPS[i]} started` });
+        await fetchRuns();
+      } catch {
+        toast({ type: "error", title: `Failed to start ${PIPELINE_STEPS[i]}` });
+        break;
+      }
+    }
+    setPipelineRunning(false);
+  };
+
   if (loading) {
     return (
       <div className="space-y-3">
@@ -672,15 +872,73 @@ function AgentRunsTab({ projectId }: { projectId: string }) {
 
   return (
     <div className="space-y-4">
+      {/* Pipeline action */}
+      <GlassPanel className="p-4" gradient>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="rounded-lg bg-gradient-to-br from-emerald-500/20 to-cyan-500/20 p-2">
+              <Rocket size={16} className="text-emerald-400" />
+            </div>
+            <div>
+              <h4 className="text-sm font-medium text-neutral-200">Full Pipeline</h4>
+              <p className="text-xs text-neutral-500">Run CRAWL, ANALYZE, GENERATE, VALIDATE sequentially</p>
+            </div>
+          </div>
+          <Button
+            onClick={startFullPipeline}
+            disabled={pipelineRunning || starting}
+            className="bg-gradient-to-r from-emerald-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 shadow-lg shadow-emerald-500/10"
+          >
+            {pipelineRunning ? (
+              <>
+                <Loader2 size={14} className="animate-spin" />
+                Running {PIPELINE_STEPS[pipelineStep]}...
+              </>
+            ) : (
+              <>
+                <Rocket size={14} />
+                Start Full Pipeline
+              </>
+            )}
+          </Button>
+        </div>
+        {pipelineRunning && (
+          <div className="mt-3 flex gap-1">
+            {PIPELINE_STEPS.map((step, i) => (
+              <div key={step} className="flex-1">
+                <div className="mb-1 text-center text-[10px] text-neutral-500">{step}</div>
+                <div className="h-1.5 rounded-full overflow-hidden bg-neutral-800">
+                  <motion.div
+                    className={`h-full rounded-full ${
+                      i < pipelineStep
+                        ? "bg-emerald-500"
+                        : i === pipelineStep
+                        ? "bg-cyan-500"
+                        : "bg-neutral-700"
+                    }`}
+                    initial={{ width: "0%" }}
+                    animate={{
+                      width: i < pipelineStep ? "100%" : i === pipelineStep ? "60%" : "0%",
+                    }}
+                    transition={{ duration: 0.5 }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </GlassPanel>
+
       {/* Quick actions */}
       <div className="flex flex-wrap gap-2">
-        {["CRAWL", "ANALYZE", "GENERATE", "VALIDATE"].map((type) => (
+        {PIPELINE_STEPS.map((type) => (
           <Button
             key={type}
             size="sm"
             variant="outline"
-            disabled={starting}
+            disabled={starting || pipelineRunning}
             onClick={() => startAgent(type)}
+            className="transition-all hover:border-emerald-500/30 hover:shadow-[0_0_15px_-5px_rgba(16,185,129,0.2)]"
           >
             <Play size={12} />
             {type}
@@ -709,7 +967,7 @@ function AgentRunsTab({ projectId }: { projectId: string }) {
 
             return (
               <StaggerItem key={run.id}>
-                <GlassPanel className="overflow-hidden">
+                <GlassPanel className="overflow-hidden transition-all hover:border-neutral-700">
                   <button
                     onClick={() =>
                       setExpandedRun(isExpanded ? null : run.id)
@@ -828,23 +1086,25 @@ function AgentRunsTab({ projectId }: { projectId: string }) {
 
 function PageSkeleton() {
   return (
-    <div className="min-h-screen bg-neutral-950 px-4 py-8 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-7xl space-y-6">
-        <div className="flex items-center gap-4">
-          <Skeleton className="h-8 w-8 rounded-lg" />
-          <Skeleton className="h-8 w-64" />
-          <Skeleton className="ml-auto h-5 w-16 rounded-full" />
-        </div>
-        <div className="flex gap-2">
-          <Skeleton className="h-10 w-80 rounded-lg" />
-        </div>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <SkeletonCard key={i} />
-          ))}
+    <AppShell>
+      <div className="min-h-screen bg-neutral-950">
+        <div className="mx-auto max-w-7xl space-y-6">
+          <div className="flex items-center gap-4">
+            <Skeleton className="h-8 w-8 rounded-lg" />
+            <Skeleton className="h-8 w-64" />
+            <Skeleton className="ml-auto h-5 w-16 rounded-full" />
+          </div>
+          <div className="flex gap-2">
+            <Skeleton className="h-10 w-80 rounded-lg" />
+          </div>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <SkeletonCard key={i} />
+            ))}
+          </div>
         </div>
       </div>
-    </div>
+    </AppShell>
   );
 }
 
@@ -866,7 +1126,7 @@ export default function ProjectDetailPage() {
       try {
         const res = await fetch(`/api/projects/${projectId}`);
         if (!res.ok) throw new Error();
-        setProject(await res.json());
+        setProject((await res.json()).data);
       } catch {
         toast({ type: "error", title: "Failed to load project" });
       } finally {
@@ -885,11 +1145,8 @@ export default function ProjectDetailPage() {
         body: JSON.stringify({ status: newStatus }),
       });
       if (!res.ok) throw new Error();
-      setProject(await res.json());
-      toast({
-        type: "success",
-        title: `Project ${newStatus.toLowerCase()}`,
-      });
+      setProject((await res.json()).data);
+      toast({ type: "success", title: `Project ${newStatus.toLowerCase()}` });
     } catch {
       toast({ type: "error", title: "Failed to update project" });
     }
@@ -899,128 +1156,138 @@ export default function ProjectDetailPage() {
 
   if (!project) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-neutral-950">
-        <div className="text-center">
-          <AlertTriangle size={48} className="mx-auto text-neutral-600" />
-          <p className="mt-4 text-neutral-400">Project not found</p>
-          <Button
-            variant="outline"
-            className="mt-4"
-            onClick={() => router.push("/projects")}
-          >
-            Back to Projects
-          </Button>
+      <AppShell>
+        <div className="flex min-h-screen items-center justify-center bg-neutral-950">
+          <div className="text-center">
+            <AlertTriangle size={48} className="mx-auto text-neutral-600" />
+            <p className="mt-4 text-neutral-400">Project not found</p>
+            <Button
+              variant="outline"
+              className="mt-4"
+              onClick={() => router.push("/projects")}
+            >
+              Back to Projects
+            </Button>
+          </div>
         </div>
-      </div>
+      </AppShell>
     );
   }
 
   return (
-    <div className="min-h-screen bg-neutral-950 px-4 py-8 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-7xl">
-        {/* Header */}
-        <FadeInSection>
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => router.push("/projects")}
-              >
-                <ArrowLeft size={18} />
-              </Button>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h1 className="text-2xl font-bold text-neutral-100">
-                    {project.name}
-                  </h1>
-                  <Badge
-                    variant={
-                      statusVariant[project.status] ?? "outline"
-                    }
-                  >
-                    {project.status}
-                  </Badge>
-                </div>
-                {project.description && (
-                  <p className="mt-0.5 text-sm text-neutral-400">
-                    {project.description}
-                  </p>
-                )}
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              {project.status !== "ACTIVE" ? (
+    <AppShell>
+      <div className="min-h-screen bg-neutral-950">
+        <div className="mx-auto max-w-7xl">
+          {/* Header */}
+          <FadeInSection>
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
                 <Button
-                  size="sm"
-                  className="bg-gradient-to-r from-emerald-600 to-cyan-600"
-                  onClick={() => handleStatusChange("ACTIVE")}
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => router.push("/projects")}
                 >
-                  <Play size={14} />
-                  Start Agent
+                  <ArrowLeft size={18} />
                 </Button>
-              ) : (
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h1 className="text-2xl font-bold text-neutral-100">
+                      {project.name}
+                    </h1>
+                    {project.status === "ACTIVE" && (
+                      <span className="relative flex h-2.5 w-2.5">
+                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+                        <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500" />
+                      </span>
+                    )}
+                    <Badge
+                      variant={
+                        statusVariant[project.status] ?? "outline"
+                      }
+                    >
+                      {project.status}
+                    </Badge>
+                  </div>
+                  {project.description && (
+                    <p className="mt-0.5 text-sm text-neutral-400">
+                      {project.description}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                {project.status !== "ACTIVE" ? (
+                  <Button
+                    size="sm"
+                    className="bg-gradient-to-r from-emerald-600 to-cyan-600 shadow-lg shadow-emerald-500/10"
+                    onClick={() => handleStatusChange("ACTIVE")}
+                  >
+                    <Play size={14} />
+                    Start Agent
+                  </Button>
+                ) : (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleStatusChange("PAUSED")}
+                  >
+                    <Pause size={14} />
+                    Pause
+                  </Button>
+                )}
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={() => handleStatusChange("PAUSED")}
+                  onClick={() =>
+                    router.push(`/projects/${projectId}/requirements`)
+                  }
                 >
-                  <Pause size={14} />
-                  Pause
+                  <Settings size={14} />
+                  Requirements
                 </Button>
-              )}
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() =>
-                  router.push(`/projects/${projectId}/requirements`)
-                }
-              >
-                <Settings size={14} />
-                Requirements
-              </Button>
+              </div>
             </div>
+          </FadeInSection>
+
+          {/* Tabs */}
+          <div className="mt-6">
+            <Tabs defaultValue="overview">
+              <TabsList>
+                <TabsTrigger value="overview">
+                  <BarChart3 size={14} className="mr-1.5" />
+                  Overview
+                </TabsTrigger>
+                <TabsTrigger value="submissions">
+                  <FileText size={14} className="mr-1.5" />
+                  Submissions
+                </TabsTrigger>
+                <TabsTrigger value="knowledge">
+                  <BookOpen size={14} className="mr-1.5" />
+                  Knowledge Base
+                </TabsTrigger>
+                <TabsTrigger value="agent">
+                  <Bot size={14} className="mr-1.5" />
+                  Agent Runs
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="overview">
+                <OverviewTab project={project} onProjectUpdate={setProject} />
+              </TabsContent>
+              <TabsContent value="submissions">
+                <SubmissionsTab projectId={projectId} />
+              </TabsContent>
+              <TabsContent value="knowledge">
+                <KnowledgeBaseTab projectId={projectId} />
+              </TabsContent>
+              <TabsContent value="agent">
+                <AgentRunsTab projectId={projectId} />
+              </TabsContent>
+            </Tabs>
           </div>
-        </FadeInSection>
-
-        {/* Tabs */}
-        <div className="mt-6">
-          <Tabs defaultValue="overview">
-            <TabsList>
-              <TabsTrigger value="overview">
-                <BarChart3 size={14} className="mr-1.5" />
-                Overview
-              </TabsTrigger>
-              <TabsTrigger value="submissions">
-                <FileText size={14} className="mr-1.5" />
-                Submissions
-              </TabsTrigger>
-              <TabsTrigger value="knowledge">
-                <BookOpen size={14} className="mr-1.5" />
-                Knowledge Base
-              </TabsTrigger>
-              <TabsTrigger value="agent">
-                <Bot size={14} className="mr-1.5" />
-                Agent Runs
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="overview">
-              <OverviewTab project={project} />
-            </TabsContent>
-            <TabsContent value="submissions">
-              <SubmissionsTab projectId={projectId} />
-            </TabsContent>
-            <TabsContent value="knowledge">
-              <KnowledgeBaseTab projectId={projectId} />
-            </TabsContent>
-            <TabsContent value="agent">
-              <AgentRunsTab projectId={projectId} />
-            </TabsContent>
-          </Tabs>
         </div>
       </div>
-    </div>
+    </AppShell>
   );
 }

@@ -22,24 +22,14 @@ export const GET = withErrorHandling(
     const project = await prisma.olympusProject.findUnique({ where: { id } });
     if (!project) return apiError("Project not found", 404);
 
-    // Get latest run of each type + any currently running
-    const [latestRun, runningRuns] = await Promise.all([
-      prisma.agentRun.findFirst({
-        where: { olympusProjectId: id },
-        orderBy: { createdAt: "desc" },
-      }),
-      prisma.agentRun.findMany({
-        where: { olympusProjectId: id, status: "RUNNING" },
-        orderBy: { createdAt: "desc" },
-      }),
-    ]);
-
-    return apiSuccess({
-      olympusProjectId: id,
-      projectStatus: project.status,
-      latestRun,
-      runningRuns,
+    // Return all runs for this project, newest first
+    const runs = await prisma.agentRun.findMany({
+      where: { olympusProjectId: id },
+      orderBy: { createdAt: "desc" },
+      take: 50,
     });
+
+    return apiSuccess(runs);
   }
 );
 
