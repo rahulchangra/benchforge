@@ -52,35 +52,35 @@ export function Sidebar({ onCollapse }: { onCollapse?: (collapsed: boolean) => v
 
   return (
     <motion.aside
-      animate={{ width: collapsed ? 64 : 256 }}
-      transition={{ duration: 0.2 }}
-      className="fixed left-0 top-0 z-40 flex h-screen flex-col border-r border-neutral-800/50 bg-neutral-950/80 backdrop-blur-xl"
+      animate={{ width: collapsed ? 68 : 260 }}
+      transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+      className="fixed left-0 top-0 z-40 flex h-screen flex-col border-r border-white/[0.08] bg-[#07070b]/80 backdrop-blur-3xl shadow-[inset_-1px_0_0_0_rgba(255,255,255,0.06)]"
     >
       {/* Logo */}
-      <div className="flex h-16 items-center justify-between border-b border-neutral-800/50 px-4">
+      <div className="flex h-16 items-center justify-between border-b border-white/[0.08] px-4">
         <AnimatePresence>
           {!collapsed && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2.5"
             >
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-500 to-cyan-500 text-sm font-bold text-white shadow-lg shadow-emerald-500/20">
+              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-400 to-cyan-500 text-xs font-black text-black shadow-lg shadow-emerald-500/25">
                 BF
               </div>
-              <span className="text-sm font-semibold text-neutral-100">BenchForge</span>
+              <span className="text-sm font-bold tracking-tight text-white">BenchForge</span>
             </motion.div>
           )}
         </AnimatePresence>
         {collapsed && (
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-500 to-cyan-500 text-sm font-bold text-white shadow-lg shadow-emerald-500/20">
+          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-400 to-cyan-500 text-xs font-black text-black shadow-lg shadow-emerald-500/25">
             BF
           </div>
         )}
         <button
           onClick={toggle}
-          className="rounded-md p-1.5 text-neutral-400 hover:bg-neutral-800 hover:text-neutral-200 transition-colors"
+          className="rounded-lg p-1.5 text-neutral-400 hover:bg-white/[0.06] hover:text-white transition-colors"
           aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
           {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
@@ -88,13 +88,13 @@ export function Sidebar({ onCollapse }: { onCollapse?: (collapsed: boolean) => v
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto p-2">
+      <nav className="flex-1 overflow-y-auto p-2.5 space-y-0.5">
         {navItems.map((item, i) => {
           if ("type" in item && item.type === "separator") {
             return collapsed ? (
-              <div key={i} className="my-2 border-t border-neutral-800/50" />
+              <div key={i} className="my-2 border-t border-white/[0.06]" />
             ) : (
-              <div key={i} className="mb-1 mt-4 px-3 text-[10px] font-semibold uppercase tracking-wider text-neutral-500">
+              <div key={i} className="mb-1 mt-4 px-3 text-[10px] font-bold uppercase tracking-wider text-neutral-500">
                 {item.label}
               </div>
             );
@@ -109,30 +109,22 @@ export function Sidebar({ onCollapse }: { onCollapse?: (collapsed: boolean) => v
               key={item.href}
               href={item.href}
               className={cn(
-                "group relative mb-0.5 flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all duration-200",
+                "group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-medium transition-all duration-200",
                 isActive
-                  ? "bg-emerald-500/10 text-emerald-400"
-                  : "text-neutral-400 hover:bg-neutral-800/50 hover:text-neutral-200"
+                  ? "bg-white/[0.08] text-white shadow-sm border border-white/[0.1]"
+                  : "text-neutral-400 hover:bg-white/[0.04] hover:text-neutral-200"
               )}
               title={collapsed ? item.label : undefined}
             >
-              {/* Active gradient accent line */}
+              {/* Active gradient accent pill */}
               {isActive && (
                 <motion.div
                   layoutId="sidebar-active"
-                  className="absolute left-0 top-1 bottom-1 w-[3px] rounded-full bg-gradient-to-b from-emerald-400 to-cyan-400"
+                  className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-full bg-gradient-to-b from-emerald-400 to-cyan-400 shadow-[0_0_8px_#10b981]"
                   transition={{ type: "spring", stiffness: 350, damping: 30 }}
                 />
               )}
-              {/* Active dot indicator */}
-              {isActive && (
-                <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  className="absolute -left-1 top-1/2 -translate-y-1/2 h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-lg shadow-emerald-400/50"
-                />
-              )}
-              <Icon size={18} className={cn("shrink-0 transition-colors", isActive && "text-emerald-400")} />
+              <Icon size={16} className={cn("shrink-0 transition-colors", isActive ? "text-emerald-400" : "text-neutral-400 group-hover:text-neutral-200")} />
               <AnimatePresence>
                 {!collapsed && (
                   <motion.span
@@ -150,7 +142,7 @@ export function Sidebar({ onCollapse }: { onCollapse?: (collapsed: boolean) => v
         })}
       </nav>
 
-      {/* Bottom gradient line */}
+      {/* Bottom gradient hairline */}
       <div className="h-px bg-gradient-to-r from-transparent via-emerald-500/20 to-transparent" />
     </motion.aside>
   );
@@ -161,12 +153,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <SidebarContext.Provider value={collapsed}>
-      <div className="flex min-h-screen">
+      <div className="flex min-h-screen bg-[#050508]">
         <Sidebar onCollapse={setCollapsed} />
         <motion.main
-          animate={{ marginLeft: collapsed ? 64 : 256 }}
-          transition={{ duration: 0.2 }}
-          className="flex-1 p-8"
+          animate={{ marginLeft: collapsed ? 68 : 260 }}
+          transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+          className="flex-1 p-6 md:p-10 min-h-screen relative"
         >
           {children}
         </motion.main>
