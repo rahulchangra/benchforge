@@ -113,6 +113,7 @@ model User {
   licensePolicies    LicensePolicy[]
   learningWorkspaces LearningWorkspace[]
   auditLogs          AuditLog[]
+  olympusProjects    OlympusProject[]
 
   @@index([email])
   @@index([githubId])
@@ -160,6 +161,7 @@ model Repository {
   issueCandidates      IssueCandidate[]
   benchmarks           Benchmark[]
   analysisEvidence     AnalysisEvidence[]
+  challengeSubmissions ChallengeSubmission[]
 
   @@index([owner, name])
   @@index([fullName])
@@ -663,5 +665,154 @@ model AuditLog {
   @@index([userId])
   @@index([action])
   @@index([entityType, entityId])
+  @@index([createdAt])
+}
+
+// ============================================================================
+// Olympus Challenge Automation Enums
+// ============================================================================
+
+enum OlympusProjectStatus {
+  SETUP
+  ACTIVE
+  PAUSED
+  COMPLETED
+}
+
+enum SubmissionCategory {
+  FEATURE_REQUEST
+  BUGFIX
+  REFACTOR
+}
+
+enum SubmissionStatus {
+  DRAFT
+  GENERATING
+  REVIEW
+  READY
+  EXPORTED
+  FAILED
+}
+
+enum AgentRunType {
+  CRAWL
+  ANALYZE
+  GENERATE
+  VALIDATE
+}
+
+enum AgentRunStatus {
+  QUEUED
+  RUNNING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+// ============================================================================
+// Olympus Challenge Automation Models
+// ============================================================================
+
+model OlympusProject {
+  id               String               @id @default(cuid())
+  name             String
+  description      String?
+  userId           String
+  user             User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  requirementsDoc  String?
+  status           OlympusProjectStatus @default(SETUP)
+  targetLanguages  String[]
+  targetCategories String[]
+  minStars         Int                  @default(500)
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
+
+  challengeSubmissions ChallengeSubmission[]
+  approvedTaskExamples ApprovedTaskExample[]
+  agentRuns            AgentRun[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model ApprovedTaskExample {
+  id               String         @id @default(cuid())
+  olympusProjectId String
+  olympusProject   OlympusProject @relation(fields: [olympusProjectId], references: [id], onDelete: Cascade)
+  repoUrl          String
+  commitHash       String
+  language         String
+  category         String
+  taskPrompt       String
+  testPatch        String
+  solutionPatch    String
+  dockerfile       String
+  testSh           String
+  metadata         String?
+  createdAt        DateTime       @default(now())
+
+  @@index([olympusProjectId])
+  @@index([language])
+  @@index([category])
+}
+
+model ChallengeSubmission {
+  id               String             @id @default(cuid())
+  olympusProjectId String
+  olympusProject   OlympusProject     @relation(fields: [olympusProjectId], references: [id], onDelete: Cascade)
+  repositoryId     String?
+  repository       Repository?        @relation(fields: [repositoryId], references: [id], onDelete: SetNull)
+  repoUrl          String
+  commitHash       String
+  language         String
+  category         SubmissionCategory
+  status           SubmissionStatus   @default(DRAFT)
+  taskTitle        String
+  taskPrompt       String
+  testSh           String?
+  testPatch        String?
+  solutionPatch    String?
+  dockerfile       String?
+  qualityScore     Float?
+  checks           String?
+  exportedAt       DateTime?
+  error            String?
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+
+  agentRuns AgentRun[]
+
+  @@index([olympusProjectId])
+  @@index([repositoryId])
+  @@index([status])
+  @@index([category])
+  @@index([language])
+  @@index([qualityScore])
+  @@index([createdAt])
+}
+
+model AgentRun {
+  id               String               @id @default(cuid())
+  olympusProjectId String
+  olympusProject   OlympusProject       @relation(fields: [olympusProjectId], references: [id], onDelete: Cascade)
+  submissionId     String?
+  submission       ChallengeSubmission?  @relation(fields: [submissionId], references: [id], onDelete: SetNull)
+  type             AgentRunType
+  status           AgentRunStatus       @default(QUEUED)
+  progress         Int                  @default(0)
+  currentStep      String?
+  logs             String               @default("[]")
+  result           String?
+  startedAt        DateTime?
+  completedAt      DateTime?
+  error            String?
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
+
+  @@index([olympusProjectId])
+  @@index([submissionId])
+  @@index([type])
+  @@index([status])
   @@index([createdAt])
 }
