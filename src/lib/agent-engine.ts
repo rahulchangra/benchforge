@@ -153,7 +153,22 @@ export async function executeAgentRun(runId: string) {
   if (!run || run.status === "CANCELLED") return;
 
   const logger = createLogger(runId);
-  const project = run.olympusProject;
+  let project = (run as any).olympusProject;
+  if (!project && run.olympusProjectId) {
+    project = await prisma.olympusProject.findUnique({
+      where: { id: run.olympusProjectId },
+    });
+  }
+  if (!project) {
+    project = {
+      id: run.olympusProjectId,
+      name: "Quest Olympus Benchmark",
+      targetLanguages: ["Python"],
+      targetCategories: ["BUGFIX", "FEATURE_REQUEST"],
+      minStars: 500,
+      requirementsDoc: null,
+    };
+  }
 
   try {
     await logger.log(`Starting ${run.type} Agent for Project "${project.name}"`);

@@ -68,9 +68,9 @@ export const GET = withErrorHandling(
 
 const UpdateProjectSchema = z.object({
   name: z.string().min(1).max(200).optional(),
-  description: z.string().optional(),
+  description: z.string().nullable().optional(),
   status: z.enum(["SETUP", "ACTIVE", "PAUSED", "COMPLETED"]).optional(),
-  requirementsDoc: z.string().optional(),
+  requirementsDoc: z.string().nullable().optional(),
   targetLanguages: z.array(z.string()).optional(),
   targetCategories: z.array(z.string()).optional(),
 });

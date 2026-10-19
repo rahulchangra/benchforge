@@ -24,8 +24,24 @@ export const GET = withErrorHandling(async () => {
     licensePolicy: latestPolicy
       ? {
           version: latestPolicy.version,
-          allowedIdentifiers: JSON.parse(latestPolicy.allowedIdentifiers),
-          ccByIdentifiers: JSON.parse(latestPolicy.ccByIdentifiers),
+          allowedIdentifiers: (() => {
+            try {
+              return typeof latestPolicy.allowedIdentifiers === "string" && latestPolicy.allowedIdentifiers.startsWith("[")
+                ? JSON.parse(latestPolicy.allowedIdentifiers)
+                : String(latestPolicy.allowedIdentifiers).split(",").map((s) => s.trim()).filter(Boolean);
+            } catch {
+              return ALLOWED_LICENSES;
+            }
+          })(),
+          ccByIdentifiers: (() => {
+            try {
+              return typeof latestPolicy.ccByIdentifiers === "string" && latestPolicy.ccByIdentifiers.startsWith("[")
+                ? JSON.parse(latestPolicy.ccByIdentifiers)
+                : String(latestPolicy.ccByIdentifiers || "").split(",").map((s) => s.trim()).filter(Boolean);
+            } catch {
+              return [];
+            }
+          })(),
           effectiveFrom: latestPolicy.effectiveFrom,
           notes: latestPolicy.notes,
         }

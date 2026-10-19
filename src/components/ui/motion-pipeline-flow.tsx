@@ -77,17 +77,7 @@ export function MotionPipelineFlow() {
       {/* Kinetic Interactive SVG Pipeline Diagram */}
       <div className="relative z-10 mb-10">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 relative">
-          {/* Animated Connecting SVG Laser Lines in Solar Amber */}
-          <div className="hidden md:block absolute top-[44px] left-[12%] right-[12%] h-[2px] z-0 pointer-events-none">
-            {/* Background track line */}
-            <div className="h-full w-full bg-white/[0.08]" />
-            {/* Moving laser light beam */}
-            <motion.div
-              className="h-full w-24 bg-gradient-to-r from-transparent via-amber-400 to-orange-400 shadow-[0_0_14px_#f59e0b]"
-              animate={{ x: ["-100%", "500%"] }}
-              transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-            />
-          </div>
+
 
           {STAGES.map((stage, idx) => {
             const Icon = stage.icon;
