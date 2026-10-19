@@ -145,3 +145,33 @@ body {
               radial-gradient(circle at 15% 35%, rgba(234, 179, 8, 0.1) 0%, transparent 50%);
 }
 
+/* Marquee ticker animation */
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-33.333%); }
+}
+.animate-marquee {
+  animation: marquee 30s linear infinite;
+}
+
+/* Accordion animations for Radix */
+@keyframes accordion-down {
+  from { height: 0; }
+  to { height: var(--radix-accordion-content-height); }
+}
+@keyframes accordion-up {
+  from { height: var(--radix-accordion-content-height); }
+  to { height: 0; }
+}
+.animate-accordion-down {
+  animation: accordion-down 0.2s ease-out;
+}
+.animate-accordion-up {
+  animation: accordion-up 0.2s ease-out;
+}
+
+/* Smooth scroll */
+html {
+  scroll-behavior: smooth;
+}
+
