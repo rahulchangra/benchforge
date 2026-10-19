@@ -6,6 +6,8 @@ import { motion, useScroll, useTransform, useSpring } from "framer-motion";
 import { InteractiveCyberGlobe } from "@/components/ui/interactive-cyber-globe";
 import { CardTilt3D } from "@/components/ui/card-tilt-3d";
 import { BorderBeam } from "@/components/ui/border-beam";
+import { KineticWaveCanvas } from "@/components/ui/kinetic-wave-canvas";
+import { MotionPipelineFlow } from "@/components/ui/motion-pipeline-flow";
 import {
   FadeInSection,
   AnimatedCounter,
@@ -256,6 +258,11 @@ export default function LandingPage() {
 
       {/* ── Hero Section with Animated Interactive 3D Cyber Globe ── */}
       <section id="map" className="relative min-h-screen flex items-center justify-center pt-28 pb-16 px-6 overflow-hidden">
+        {/* Kinetic Wave Canvas Motion Graphic (Undulating ribbons + reactive particles) */}
+        <div className="pointer-events-none absolute inset-0 z-0 opacity-40">
+          <KineticWaveCanvas className="w-full h-full" />
+        </div>
+
         <motion.div
           style={{ scale: heroScale, opacity: heroOpacity, y: heroY }}
           className="relative z-10 max-w-7xl mx-auto w-full"
@@ -480,51 +487,14 @@ export default function LandingPage() {
               Sequential 4-Stage Agent Engine
             </h2>
             <p className="max-w-2xl mx-auto text-sm text-neutral-400">
-              From raw GitHub issue search to downloadable Olympus .ZIP package.
+              From raw GitHub issue search to downloadable Olympus .ZIP package with real-time kinetic circuit flow.
             </p>
           </FadeInSection>
 
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {[
-              {
-                num: "01",
-                name: "CRAWL",
-                color: "text-emerald-400",
-                desc: "Queries GitHub search with star and license filters. Identifies closed issues with test-backed PRs.",
-              },
-              {
-                num: "02",
-                name: "ANALYZE",
-                color: "text-cyan-400",
-                desc: "Assesses reproducibility, issue context, self-contained scope, and clean diff isolation.",
-              },
-              {
-                num: "03",
-                name: "GENERATE",
-                color: "text-blue-400",
-                desc: "Synthesizes authentic task.md, test.sh, test.patch, solution.patch, and Dockerfile.",
-              },
-              {
-                num: "04",
-                name: "VALIDATE",
-                color: "text-purple-400",
-                desc: "Executes 6 automated quality checks, computes final score, and enables 1-click ZIP export.",
-              },
-            ].map((stage) => (
-              <div key={stage.name} className="apple-glass-card rounded-2xl p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <span className="text-2xl font-black font-mono text-neutral-600">
-                    {stage.num}
-                  </span>
-                  <span className={`text-xs font-bold font-mono tracking-wider ${stage.color}`}>
-                    {stage.name}
-                  </span>
-                </div>
-                <h4 className="text-base font-bold text-white mb-2">{stage.name} PHASE</h4>
-                <p className="text-xs text-neutral-400 leading-relaxed">{stage.desc}</p>
-              </div>
-            ))}
-          </div>
+          {/* Kinetic Motion Graphic Pipeline Flow with interactive stages and laser pulses */}
+          <FadeInSection delay={0.15}>
+            <MotionPipelineFlow />
+          </FadeInSection>
         </div>
       </section>
 

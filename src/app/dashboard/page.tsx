@@ -11,6 +11,7 @@ import {
 import { SpotlightCard } from "@/components/ui/spotlight-card";
 import { BorderBeam } from "@/components/ui/border-beam";
 import { CyberCore3D } from "@/components/ui/cyber-core-3d";
+import { RadarHudGraphic } from "@/components/ui/radar-hud-graphic";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -548,16 +549,41 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Real-time Activity Feed */}
+          {/* Real-time Activity Feed & Radar HUD */}
           <div className="relative overflow-hidden rounded-2xl border border-white/[0.08] bg-neutral-900/60 p-6 backdrop-blur-xl shadow-[inset_0_1px_0_0_rgba(255,255,255,0.08)]">
             <div className="flex items-center justify-between mb-5">
               <div className="flex items-center gap-2">
                 <Clock size={18} className="text-cyan-400" />
-                <h3 className="font-semibold text-neutral-200">Live Telemetry & Activity</h3>
+                <h3 className="font-semibold text-neutral-200">Autonomous Radar & Live Telemetry</h3>
               </div>
-              <span className="flex items-center gap-1.5 text-xs text-neutral-500">
-                <PulseIndicator active /> Real-time
+              <span className="flex items-center gap-1.5 text-xs text-neutral-500 font-mono">
+                <PulseIndicator active /> TARGET ACQUISITION
               </span>
+            </div>
+
+            {/* Radar Spectrometer HUD Graphic */}
+            <div className="mb-6 p-4 rounded-xl border border-white/[0.06] bg-black/50 flex flex-col sm:flex-row items-center gap-5">
+              <div className="w-[180px] h-[180px] shrink-0 flex items-center justify-center relative">
+                <RadarHudGraphic className="w-full h-full" />
+              </div>
+              <div className="flex-1 w-full space-y-2 text-xs font-mono">
+                <div className="flex items-center justify-between pb-1.5 border-b border-white/[0.06]">
+                  <span className="text-neutral-500">RADAR FREQUENCY:</span>
+                  <span className="text-emerald-400 font-bold">5.8 GHz PULSE</span>
+                </div>
+                <div className="flex items-center justify-between pb-1.5 border-b border-white/[0.06]">
+                  <span className="text-neutral-500">TARGET SWEEP:</span>
+                  <span className="text-cyan-400 font-bold">360° CONTINUOUS</span>
+                </div>
+                <div className="flex items-center justify-between pb-1.5 border-b border-white/[0.06]">
+                  <span className="text-neutral-500">ACQUIRED REPOS:</span>
+                  <span className="text-white font-bold">4 TARGETS IN RANGE</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-neutral-500">FILTER SPEC:</span>
+                  <span className="text-amber-400 font-bold">&gt;=500★ &amp; PERMISSIVE</span>
+                </div>
+              </div>
             </div>
 
             <div className="space-y-3">
