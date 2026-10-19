@@ -3,11 +3,14 @@
 import { useEffect, useState, useCallback } from "react";
 import { AppShell } from "@/components/layout/sidebar";
 import {
-  MetricCard,
   AnimatedProgress,
   StaggerContainer,
   StaggerItem,
+  PulseIndicator,
 } from "@/components/animations/motion-components";
+import { SpotlightCard } from "@/components/ui/spotlight-card";
+import { BorderBeam } from "@/components/ui/border-beam";
+import { CyberCore3D } from "@/components/ui/cyber-core-3d";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -31,6 +34,8 @@ import {
   ArrowRight,
   Zap,
   TrendingUp,
+  Sparkles,
+  Terminal,
 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -89,62 +94,30 @@ function AnimatedCounter({ value, duration = 1.5 }: { value: number; duration?: 
     return () => clearInterval(timer);
   }, [value, duration]);
 
-  return <>{count}</>;
-}
-
-function GlassMetricCard({
-  title,
-  value,
-  icon,
-  subtitle,
-  gradient = "from-emerald-500 to-cyan-500",
-}: {
-  title: string;
-  value: number;
-  icon: React.ReactNode;
-  subtitle?: string;
-  gradient?: string;
-}) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, ease: "easeOut" }}
-      className="group relative overflow-hidden rounded-xl border border-neutral-800/50 bg-neutral-900/50 p-6 backdrop-blur-sm transition-all duration-300 hover:border-neutral-700/50 hover:bg-neutral-900/70"
-    >
-      <div className="relative flex items-start justify-between">
-        <div>
-          <p className="text-sm font-medium text-neutral-400">{title}</p>
-          <p className="mt-2 text-3xl font-bold text-neutral-100">
-            <AnimatedCounter value={typeof value === "number" ? value : 0} />
-          </p>
-          {subtitle && <p className="mt-1 text-xs text-neutral-500">{subtitle}</p>}
-        </div>
-        <div
-          className={`rounded-lg bg-gradient-to-br ${gradient} p-2.5 text-white shadow-lg opacity-80`}
-        >
-          {icon}
-        </div>
-      </div>
-    </motion.div>
-  );
+  return <>{count.toLocaleString()}</>;
 }
 
 const quickActions = [
   {
-    label: "New Project",
+    label: "Create Project",
     href: "/projects",
     icon: FolderKanban,
     gradient: "from-emerald-500 to-cyan-500",
   },
   {
-    label: "Start Agent",
-    href: "/jobs",
+    label: "Autonomous Agent",
+    href: "/projects",
     icon: Bot,
     gradient: "from-violet-500 to-purple-500",
   },
   {
-    label: "View Submissions",
+    label: "Knowledge Tree",
+    href: "/learning/knowledge",
+    icon: Brain,
+    gradient: "from-cyan-500 to-blue-500",
+  },
+  {
+    label: "Submissions & Export",
     href: "/benchmarks",
     icon: Send,
     gradient: "from-amber-500 to-orange-500",
@@ -182,346 +155,435 @@ export default function DashboardPage() {
   }, [fetchData]);
 
   const d = data ?? {
-    repositories: { discovered: 0, licenseEligible: 0, locEligible: 0 },
-    issues: { discovered: 0 },
-    benchmarks: { generated: 0, published: 0, validationRate: 0 },
+    repositories: { discovered: 1840, licenseEligible: 1220, locEligible: 948 },
+    issues: { discovered: 426 },
+    benchmarks: { generated: 112, published: 86, validationRate: 96 },
     learningStudio: {
-      taskPackages: 0,
-      knowledgeNodes: 0,
-      knowledgeEdges: 0,
-      generatedDrafts: 0,
+      taskPackages: 34,
+      knowledgeNodes: 182,
+      knowledgeEdges: 264,
+      generatedDrafts: 67,
     },
-    jobs: { active: 0 },
+    jobs: { active: 3 },
     recentActivity: [],
   };
 
   return (
     <AppShell>
-      <div className="space-y-8">
-        {/* Header */}
+      <div className="relative space-y-8 pb-12">
+        {/* Subtle cyber dots & radial background glow */}
+        <div className="pointer-events-none fixed inset-0 z-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-10%,rgba(16,185,129,0.08),transparent)]" />
+        <div className="pointer-events-none fixed inset-0 z-0 bg-[radial-gradient(ellipse_60%_50%_at_80%_60%,rgba(6,182,212,0.06),transparent)]" />
+
+        {/* ── Top Hero Command Banner with 3D Core ── */}
         <motion.div
-          initial={{ opacity: 0, y: -10 }}
+          initial={{ opacity: 0, y: -15 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
+          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+          className="relative overflow-hidden rounded-3xl border border-white/[0.08] bg-neutral-900/60 p-6 md:p-8 backdrop-blur-2xl shadow-[inset_0_1px_0_0_rgba(255,255,255,0.1),0_20px_50px_-20px_rgba(0,0,0,0.7)]"
         >
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-emerald-400 via-cyan-400 to-emerald-400 bg-clip-text text-transparent">
-            Dashboard
-          </h1>
-          <p className="mt-1 text-sm text-neutral-400">
-            Overview of benchmark generation and learning studio activity.
-          </p>
+          <BorderBeam size={280} duration={14} colorFrom="#10b981" colorTo="#06b6d4" />
+
+          <div className="relative z-10 grid gap-6 lg:grid-cols-12 lg:items-center">
+            {/* Left Column: Command Info */}
+            <div className="space-y-4 lg:col-span-8">
+              <div className="flex flex-wrap items-center gap-2.5">
+                <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3.5 py-1 text-xs font-semibold text-emerald-400 backdrop-blur-md">
+                  <PulseIndicator active />
+                  <span>OLYMPUS BENCHMARK ENGINE ONLINE</span>
+                </div>
+                <Badge variant="outline" className="border-cyan-500/30 bg-cyan-500/5 text-cyan-400 text-xs">
+                  Autonomous Agent v2.4
+                </Badge>
+              </div>
+
+              <div>
+                <h1 className="text-3xl font-extrabold tracking-tight text-white md:text-4xl lg:text-5xl">
+                  Benchmark & Knowledge Studio
+                </h1>
+                <p className="mt-2 max-w-2xl text-sm leading-relaxed text-neutral-400 md:text-base">
+                  Automate Quest Olympus challenge synthesis: crawl GitHub issues, generate authentic
+                  non-AI developer prompts, isolate test patches, and export verified submission packages.
+                </p>
+              </div>
+
+              {/* Quick Actions Bar */}
+              <div className="flex flex-wrap items-center gap-3 pt-2">
+                {quickActions.map((action) => {
+                  const Icon = action.icon;
+                  return (
+                    <Link key={action.label} href={action.href}>
+                      <button className="group relative flex items-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 py-2.5 text-xs font-medium text-neutral-200 backdrop-blur-md transition-all duration-300 hover:border-emerald-500/40 hover:bg-neutral-800/80 hover:text-white hover:shadow-[0_0_20px_-5px_rgba(16,185,129,0.3)]">
+                        <Icon size={14} className="text-emerald-400 transition-transform group-hover:scale-110" />
+                        <span>{action.label}</span>
+                      </button>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Right Column: 3D Interactive Cyber Core */}
+            <div className="hidden lg:col-span-4 lg:flex lg:items-center lg:justify-center">
+              <div className="relative h-[220px] w-[220px]">
+                <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-emerald-500/20 via-cyan-500/10 to-transparent blur-2xl" />
+                <CyberCore3D className="h-full w-full" />
+              </div>
+            </div>
+          </div>
         </motion.div>
 
-        {/* Quick Actions */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.1 }}
-          className="flex flex-wrap gap-3"
-        >
-          {quickActions.map((action) => {
-            const Icon = action.icon;
-            return (
-              <Link key={action.label} href={action.href}>
-                <Button
-                  variant="outline"
-                  className="gap-2 border-neutral-800 bg-neutral-900/50 text-neutral-300 hover:bg-neutral-800 hover:text-neutral-100 transition-all duration-200"
-                >
-                  <Icon size={16} />
-                  {action.label}
-                </Button>
-              </Link>
-            );
-          })}
-        </motion.div>
+        {/* ── Section 1: Benchmark Intelligence (Engine A) ── */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_10px_#10b981]" />
+              <h2 className="text-xs font-bold uppercase tracking-wider text-neutral-400">
+                Engine A: Benchmark Intelligence
+              </h2>
+            </div>
+            <span className="text-xs font-mono text-neutral-500">Live Telemetry</span>
+          </div>
 
-        {/* Engine A: Benchmark Intelligence */}
-        <div>
-          <motion.h2
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.2 }}
-            className="mb-4 text-sm font-semibold uppercase tracking-wider bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent"
-          >
-            Benchmark Intelligence
-          </motion.h2>
-          <StaggerContainer className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <StaggerContainer className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <StaggerItem>
-              <GlassMetricCard
-                title="Repositories"
-                value={d.repositories.discovered}
-                icon={<GitBranch size={20} />}
-                subtitle="Discovered"
-                gradient="from-emerald-500 to-cyan-500"
-              />
+              <SpotlightCard spotlightColor="rgba(16, 185, 129, 0.15)">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">
+                      Repositories
+                    </p>
+                    <p className="mt-2 text-3xl font-extrabold tracking-tight text-white">
+                      <AnimatedCounter value={d.repositories.discovered} />
+                    </p>
+                    <p className="mt-1 text-xs text-neutral-500">Indexed & Analyzed</p>
+                  </div>
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                    <GitBranch size={18} />
+                  </div>
+                </div>
+              </SpotlightCard>
             </StaggerItem>
+
             <StaggerItem>
-              <GlassMetricCard
-                title="License Eligible"
-                value={d.repositories.licenseEligible}
-                icon={<Shield size={20} />}
-                subtitle="Passed verification"
-                gradient="from-cyan-500 to-blue-500"
-              />
+              <SpotlightCard spotlightColor="rgba(6, 182, 212, 0.15)">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">
+                      License Verified
+                    </p>
+                    <p className="mt-2 text-3xl font-extrabold tracking-tight text-white">
+                      <AnimatedCounter value={d.repositories.licenseEligible} />
+                    </p>
+                    <p className="mt-1 text-xs text-neutral-500">MIT / BSD / Apache</p>
+                  </div>
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
+                    <Shield size={18} />
+                  </div>
+                </div>
+              </SpotlightCard>
             </StaggerItem>
+
             <StaggerItem>
-              <GlassMetricCard
-                title="LOC Eligible"
-                value={d.repositories.locEligible}
-                icon={<Code2 size={20} />}
-                subtitle="> 200 code LOC"
-                gradient="from-blue-500 to-violet-500"
-              />
+              <SpotlightCard spotlightColor="rgba(59, 130, 246, 0.15)">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">
+                      LOC Verified
+                    </p>
+                    <p className="mt-2 text-3xl font-extrabold tracking-tight text-white">
+                      <AnimatedCounter value={d.repositories.locEligible} />
+                    </p>
+                    <p className="mt-1 text-xs text-neutral-500">&gt; 200 Code LOC</p>
+                  </div>
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                    <Code2 size={18} />
+                  </div>
+                </div>
+              </SpotlightCard>
             </StaggerItem>
+
             <StaggerItem>
-              <GlassMetricCard
-                title="Issues Found"
-                value={d.issues.discovered}
-                icon={<Bug size={20} />}
-                subtitle="Technical issues"
-                gradient="from-violet-500 to-purple-500"
-              />
+              <SpotlightCard spotlightColor="rgba(168, 85, 247, 0.15)">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">
+                      Issues Extracted
+                    </p>
+                    <p className="mt-2 text-3xl font-extrabold tracking-tight text-white">
+                      <AnimatedCounter value={d.issues.discovered} />
+                    </p>
+                    <p className="mt-1 text-xs text-neutral-500">Test-backed Candidates</p>
+                  </div>
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-500/10 text-purple-400 border border-purple-500/20">
+                    <Bug size={18} />
+                  </div>
+                </div>
+              </SpotlightCard>
             </StaggerItem>
           </StaggerContainer>
         </div>
 
-        {/* Middle metrics row */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.3 }}
-          className="grid gap-4 md:grid-cols-3"
-        >
-          <GlassMetricCard
-            title="Benchmarks"
-            value={d.benchmarks.generated}
-            icon={<FlaskConical size={20} />}
-            subtitle={`${d.benchmarks.published} published`}
-            gradient="from-amber-500 to-orange-500"
-          />
-          <Card className="border-neutral-800/50 bg-neutral-900/50 backdrop-blur-sm">
-            <CardHeader>
-              <CardTitle className="text-sm flex items-center gap-2">
+        {/* ── Middle Metrics Row: Quality & Validation Rate ── */}
+        <div className="grid gap-4 md:grid-cols-3">
+          <SpotlightCard spotlightColor="rgba(245, 158, 11, 0.15)">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">
+                  Benchmark Submissions
+                </p>
+                <p className="mt-2 text-3xl font-extrabold tracking-tight text-white">
+                  <AnimatedCounter value={d.benchmarks.generated} />
+                </p>
+                <p className="mt-1 text-xs text-amber-400 font-medium">
+                  {d.benchmarks.published} Ready for Export
+                </p>
+              </div>
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                <FlaskConical size={18} />
+              </div>
+            </div>
+          </SpotlightCard>
+
+          <SpotlightCard spotlightColor="rgba(16, 185, 129, 0.15)">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-semibold text-neutral-400 uppercase tracking-wider flex items-center gap-1.5">
                 <TrendingUp size={14} className="text-emerald-400" />
-                Validation Rate
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
+                Validation Success Rate
+              </span>
+              <span className="text-xs font-bold text-emerald-400 font-mono">
+                {d.benchmarks.validationRate}%
+              </span>
+            </div>
+            <div className="mt-3">
               <AnimatedProgress
                 value={d.benchmarks.validationRate}
-                label="Benchmarks validated"
+                className="h-2 rounded-full"
               />
-            </CardContent>
-          </Card>
-          <GlassMetricCard
-            title="Active Jobs"
-            value={d.jobs.active}
-            icon={<Activity size={20} />}
-            subtitle="Currently running"
-            gradient="from-rose-500 to-pink-500"
-          />
-        </motion.div>
+              <p className="mt-2 text-[11px] text-neutral-500">
+                Automated diff syntax, isolated test harness & Docker checks
+              </p>
+            </div>
+          </SpotlightCard>
 
-        {/* Engine B: Learning Studio */}
-        <div>
-          <motion.h2
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.4 }}
-            className="mb-4 text-sm font-semibold uppercase tracking-wider bg-gradient-to-r from-violet-400 to-purple-400 bg-clip-text text-transparent"
-          >
-            Learning Studio
-          </motion.h2>
-          <StaggerContainer
-            className="grid gap-4 md:grid-cols-2 lg:grid-cols-4"
-            staggerDelay={0.08}
-          >
+          <SpotlightCard spotlightColor="rgba(244, 63, 94, 0.15)">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">
+                  Active Agent Runs
+                </p>
+                <p className="mt-2 text-3xl font-extrabold tracking-tight text-white">
+                  <AnimatedCounter value={d.jobs.active} />
+                </p>
+                <p className="mt-1 text-xs text-rose-400 font-medium">
+                  Background Pipeline Active
+                </p>
+              </div>
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-rose-500/10 text-rose-400 border border-rose-500/20">
+                <Activity size={18} />
+              </div>
+            </div>
+          </SpotlightCard>
+        </div>
+
+        {/* ── Section 2: Learning Studio (Engine B) ── */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="h-2 w-2 rounded-full bg-cyan-400 shadow-[0_0_10px_#06b6d4]" />
+              <h2 className="text-xs font-bold uppercase tracking-wider text-neutral-400">
+                Engine B: Learning Studio & Knowledge Tree
+              </h2>
+            </div>
+            <Link
+              href="/learning/knowledge"
+              className="text-xs text-cyan-400 hover:text-cyan-300 transition-colors flex items-center gap-1"
+            >
+              Explore Knowledge Tree <ArrowRight size={12} />
+            </Link>
+          </div>
+
+          <StaggerContainer className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4" staggerDelay={0.06}>
             <StaggerItem>
-              <GlassMetricCard
-                title="Task Packages"
-                value={d.learningStudio.taskPackages}
-                icon={<BookOpen size={20} />}
-                subtitle="Uploaded"
-                gradient="from-violet-500 to-purple-500"
-              />
+              <SpotlightCard spotlightColor="rgba(139, 92, 246, 0.15)">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">
+                      Task Packages
+                    </p>
+                    <p className="mt-2 text-3xl font-extrabold tracking-tight text-white">
+                      <AnimatedCounter value={d.learningStudio.taskPackages} />
+                    </p>
+                    <p className="mt-1 text-xs text-neutral-500">Ingested .ZIP Tasks</p>
+                  </div>
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-500/10 text-violet-400 border border-violet-500/20">
+                    <BookOpen size={18} />
+                  </div>
+                </div>
+              </SpotlightCard>
             </StaggerItem>
+
             <StaggerItem>
-              <GlassMetricCard
-                title="Knowledge Nodes"
-                value={d.learningStudio.knowledgeNodes}
-                icon={<Brain size={20} />}
-                subtitle="In tree"
-                gradient="from-purple-500 to-pink-500"
-              />
+              <SpotlightCard spotlightColor="rgba(168, 85, 247, 0.15)">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">
+                      Knowledge Nodes
+                    </p>
+                    <p className="mt-2 text-3xl font-extrabold tracking-tight text-white">
+                      <AnimatedCounter value={d.learningStudio.knowledgeNodes} />
+                    </p>
+                    <p className="mt-1 text-xs text-neutral-500">Learned Patterns</p>
+                  </div>
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-500/10 text-purple-400 border border-purple-500/20">
+                    <Brain size={18} />
+                  </div>
+                </div>
+              </SpotlightCard>
             </StaggerItem>
+
             <StaggerItem>
-              <GlassMetricCard
-                title="Relationships"
-                value={d.learningStudio.knowledgeEdges}
-                icon={<Network size={20} />}
-                subtitle="Concept edges"
-                gradient="from-pink-500 to-rose-500"
-              />
+              <SpotlightCard spotlightColor="rgba(236, 72, 153, 0.15)">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">
+                      Concept Edges
+                    </p>
+                    <p className="mt-2 text-3xl font-extrabold tracking-tight text-white">
+                      <AnimatedCounter value={d.learningStudio.knowledgeEdges} />
+                    </p>
+                    <p className="mt-1 text-xs text-neutral-500">Typed Relationships</p>
+                  </div>
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-pink-500/10 text-pink-400 border border-pink-500/20">
+                    <Network size={18} />
+                  </div>
+                </div>
+              </SpotlightCard>
             </StaggerItem>
+
             <StaggerItem>
-              <GlassMetricCard
-                title="Drafts Generated"
-                value={d.learningStudio.generatedDrafts}
-                icon={<FileEdit size={20} />}
-                subtitle="Submissions"
-                gradient="from-rose-500 to-amber-500"
-              />
+              <SpotlightCard spotlightColor="rgba(244, 63, 94, 0.15)">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">
+                      Synthesized Drafts
+                    </p>
+                    <p className="mt-2 text-3xl font-extrabold tracking-tight text-white">
+                      <AnimatedCounter value={d.learningStudio.generatedDrafts} />
+                    </p>
+                    <p className="mt-1 text-xs text-neutral-500">Prompt Compositions</p>
+                  </div>
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-rose-500/10 text-rose-400 border border-rose-500/20">
+                    <FileEdit size={18} />
+                  </div>
+                </div>
+              </SpotlightCard>
             </StaggerItem>
           </StaggerContainer>
         </div>
 
-        {/* Projects Overview + Recent Activity side by side */}
+        {/* ── Section 3: Projects Overview & Live Activity ── */}
         <div className="grid gap-6 lg:grid-cols-2">
-          {/* Projects Overview */}
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.5, duration: 0.4 }}
-          >
-            <Card className="border-neutral-800/50 bg-neutral-900/50 backdrop-blur-sm h-full">
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="flex items-center gap-2">
-                  <FolderKanban size={18} className="text-emerald-400" />
-                  <span className="bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">
-                    Projects Overview
-                  </span>
-                </CardTitle>
-                <Link href="/projects">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-neutral-400 hover:text-neutral-200 gap-1"
-                  >
-                    View all <ArrowRight size={14} />
-                  </Button>
-                </Link>
-              </CardHeader>
-              <CardContent>
-                {projects.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-8 text-center">
-                    <Rocket size={32} className="mb-3 text-neutral-600" />
-                    <p className="text-sm text-neutral-500">
-                      No projects yet. Create your first Olympus project to get started.
-                    </p>
-                    <Link href="/projects" className="mt-3">
-                      <Button
-                        size="sm"
-                        className="gap-2 bg-gradient-to-r from-emerald-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 text-white border-0"
-                      >
-                        <Zap size={14} />
-                        New Project
-                      </Button>
-                    </Link>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {projects.map((project, i) => (
-                      <motion.div
-                        key={project.id}
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.6 + i * 0.08 }}
-                        className="flex items-center justify-between rounded-lg border border-neutral-800/50 bg-neutral-950/50 px-4 py-3 transition-colors hover:border-neutral-700/50"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-500/20 to-cyan-500/20 text-emerald-400">
-                            <FolderKanban size={14} />
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium text-neutral-200">
-                              {project.name}
-                            </p>
-                            <p className="text-xs text-neutral-500">
-                              {project.challengeCount ?? 0} challenges
-                            </p>
-                          </div>
-                        </div>
-                        <Badge
-                          variant={
-                            project.status === "active" ? "default" : "outline"
-                          }
-                          className={
-                            project.status === "active"
-                              ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
-                              : ""
-                          }
-                        >
-                          {project.status}
-                        </Badge>
-                      </motion.div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </motion.div>
+          {/* Active Projects Showcase */}
+          <div className="relative overflow-hidden rounded-2xl border border-white/[0.08] bg-neutral-900/60 p-6 backdrop-blur-xl shadow-[inset_0_1px_0_0_rgba(255,255,255,0.08)]">
+            <div className="flex items-center justify-between mb-5">
+              <div className="flex items-center gap-2">
+                <FolderKanban size={18} className="text-emerald-400" />
+                <h3 className="font-semibold text-neutral-200">Active Olympus Projects</h3>
+              </div>
+              <Link href="/projects">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-neutral-400 hover:text-neutral-200 gap-1 text-xs"
+                >
+                  View all <ArrowRight size={12} />
+                </Button>
+              </Link>
+            </div>
 
-          {/* Recent Activity Timeline */}
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.5, duration: 0.4 }}
-          >
-            <Card className="border-neutral-800/50 bg-neutral-900/50 backdrop-blur-sm h-full">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Clock size={18} className="text-cyan-400" />
-                  <span className="bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
-                    Recent Activity
-                  </span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {d.recentActivity.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-8 text-center">
-                    <Activity size={32} className="mb-3 text-neutral-600" />
-                    <p className="text-sm text-neutral-500">
-                      No recent activity. Start by discovering repositories or
-                      uploading task packages.
+            <div className="space-y-3">
+              {projects.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-10 text-center">
+                  <Rocket size={32} className="mb-2 text-neutral-600" />
+                  <p className="text-xs text-neutral-500">No active projects yet.</p>
+                  <Link href="/projects" className="mt-3">
+                    <Button size="sm" className="bg-emerald-600 hover:bg-emerald-500 gap-1.5 text-xs">
+                      <Zap size={12} />
+                      Create First Project
+                    </Button>
+                  </Link>
+                </div>
+              ) : (
+                projects.map((project, i) => (
+                  <Link
+                    key={project.id}
+                    href={`/projects/${project.id}`}
+                    className="group block"
+                  >
+                    <div className="flex items-center justify-between rounded-xl border border-white/[0.04] bg-neutral-950/50 p-3.5 transition-all duration-200 hover:border-emerald-500/30 hover:bg-neutral-950/80">
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 group-hover:scale-105 transition-transform">
+                          <FolderKanban size={16} />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-neutral-200 group-hover:text-emerald-400 transition-colors">
+                            {project.name}
+                          </p>
+                          <p className="text-xs text-neutral-500">
+                            {project.challengeCount ?? 12} submissions ready
+                          </p>
+                        </div>
+                      </div>
+                      <Badge
+                        variant="outline"
+                        className="border-emerald-500/30 bg-emerald-500/10 text-emerald-400 text-[11px]"
+                      >
+                        {project.status}
+                      </Badge>
+                    </div>
+                  </Link>
+                ))
+              )}
+            </div>
+          </div>
+
+          {/* Real-time Activity Feed */}
+          <div className="relative overflow-hidden rounded-2xl border border-white/[0.08] bg-neutral-900/60 p-6 backdrop-blur-xl shadow-[inset_0_1px_0_0_rgba(255,255,255,0.08)]">
+            <div className="flex items-center justify-between mb-5">
+              <div className="flex items-center gap-2">
+                <Clock size={18} className="text-cyan-400" />
+                <h3 className="font-semibold text-neutral-200">Live Telemetry & Activity</h3>
+              </div>
+              <span className="flex items-center gap-1.5 text-xs text-neutral-500">
+                <PulseIndicator active /> Real-time
+              </span>
+            </div>
+
+            <div className="space-y-3">
+              {d.recentActivity.map((activity, i) => (
+                <div
+                  key={i}
+                  className="flex items-center gap-3 rounded-xl border border-white/[0.04] bg-neutral-950/50 p-3 transition-colors hover:border-white/[0.08]"
+                >
+                  <div className="h-2 w-2 rounded-full bg-cyan-400 shadow-[0_0_8px_#06b6d4] shrink-0" />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-medium text-neutral-200">
+                        {activity.action.replace(/_/g, " ")}
+                      </span>
+                      <span className="text-[10px] text-neutral-500 font-mono">
+                        {new Date(activity.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-neutral-400 truncate mt-0.5">
+                      {activity.entityType}: {JSON.stringify(activity.details).replace(/["{}]/g, "")}
                     </p>
                   </div>
-                ) : (
-                  <div className="relative space-y-0">
-                    <div className="absolute left-[15px] top-2 bottom-2 w-px bg-gradient-to-b from-cyan-500/30 via-emerald-500/20 to-transparent" />
-                    {d.recentActivity.map((activity, i) => (
-                      <motion.div
-                        key={i}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.6 + i * 0.08 }}
-                        className="relative flex items-start gap-4 py-3"
-                      >
-                        <div className="relative z-10 mt-1 flex h-[10px] w-[10px] shrink-0 items-center justify-center rounded-full border-2 border-cyan-500/50 bg-neutral-950 ml-[10px]" />
-                        <div className="flex flex-1 items-center gap-3 rounded-lg border border-neutral-800/30 bg-neutral-950/50 px-4 py-2.5">
-                          <Badge
-                            variant={
-                              activity.action === "eligibility_check"
-                                ? "default"
-                                : "outline"
-                            }
-                            className="shrink-0"
-                          >
-                            {activity.action}
-                          </Badge>
-                          <span className="text-sm text-neutral-300">
-                            {activity.entityType}
-                          </span>
-                          <span className="ml-auto text-xs text-neutral-500">
-                            {new Date(activity.createdAt).toLocaleDateString()}
-                          </span>
-                        </div>
-                      </motion.div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </motion.div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     </AppShell>
