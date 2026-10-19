@@ -49,19 +49,17 @@ export default async function middleware(request: NextRequest) {
     return withSecurityHeaders(NextResponse.next());
   }
 
-  // Auth is configured - check session
-  try {
-    const { auth } = await import("@/lib/auth");
-    const session = await auth();
+  // Auth is configured - check session token cookie directly (Edge runtime safe)
+  const sessionToken =
+    request.cookies.get("authjs.session-token")?.value ||
+    request.cookies.get("__Secure-authjs.session-token")?.value ||
+    request.cookies.get("next-auth.session-token")?.value ||
+    request.cookies.get("__Secure-next-auth.session-token")?.value;
 
-    if (!session?.user) {
-      const loginUrl = new URL("/login", request.url);
-      loginUrl.searchParams.set("callbackUrl", pathname);
-      return NextResponse.redirect(loginUrl);
-    }
-  } catch {
-    // Auth misconfigured - fall through in demo mode
-    return withSecurityHeaders(NextResponse.next());
+  if (!sessionToken) {
+    const loginUrl = new URL("/login", request.url);
+    loginUrl.searchParams.set("callbackUrl", pathname);
+    return NextResponse.redirect(loginUrl);
   }
 
   return withSecurityHeaders(NextResponse.next());

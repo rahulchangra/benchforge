@@ -12,9 +12,9 @@ import {
 } from "@/lib/api-helpers";
 
 const CreateEdgeSchema = z.object({
-  workspaceId: z.string().cuid(),
-  sourceNodeId: z.string().cuid(),
-  targetNodeId: z.string().cuid(),
+  workspaceId: z.string().min(1),
+  sourceNodeId: z.string().min(1),
+  targetNodeId: z.string().min(1),
   type: z.enum([
     "PARENT_OF", "DEPENDS_ON", "IMPLEMENTS", "EXTENDS",
     "SIMILAR_TO", "CONTRASTS_WITH", "SOLVES", "TESTED_BY",

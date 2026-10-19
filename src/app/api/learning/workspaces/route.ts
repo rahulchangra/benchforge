@@ -14,7 +14,7 @@ import {
 const CreateWorkspaceSchema = z.object({
   name: z.string().min(1).max(200),
   description: z.string().optional(),
-  userId: z.string().cuid(),
+  userId: z.string().min(1),
 });
 
 /** POST /api/learning/workspaces - Create a learning workspace */

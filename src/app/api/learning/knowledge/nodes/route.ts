@@ -64,7 +64,7 @@ export const GET = withErrorHandling(async (request: NextRequest) => {
 });
 
 const CreateNodeSchema = z.object({
-  workspaceId: z.string().cuid(),
+  workspaceId: z.string().min(1),
   type: z.enum([
     "DOMAIN", "TOPIC", "SUBTOPIC", "CONCEPT", "REQUIREMENT_PATTERN",
     "SOLUTION_STRATEGY", "ARCHITECTURE_PATTERN", "ALGORITHM", "CODE_PATTERN",
@@ -73,7 +73,7 @@ const CreateNodeSchema = z.object({
   ]),
   name: z.string().min(1).max(500),
   definition: z.string().optional(),
-  parentId: z.string().cuid().optional(),
+  parentId: z.string().min(1).optional(),
   confidence: z.number().min(0).max(1).optional(),
   applicability: z.string().optional(),
   limitations: z.string().optional(),

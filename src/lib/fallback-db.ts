@@ -824,6 +824,22 @@ function populateItem(modelKey: string, item: any, include?: Record<string, any>
     }
   }
 
+  // Relations for taskPackage
+  if (modelKey === "taskPackage") {
+    if (include._count) {
+      item._count = {
+        uploadedDocuments: data.uploadedDocument.filter((d: any) => d.taskPackageId === item.id).length,
+        extractedRequirements: data.extractedRequirement.filter((r: any) => r.taskPackageId === item.id).length,
+      };
+    }
+    if (include.uploadedDocuments) {
+      item.uploadedDocuments = data.uploadedDocument.filter((d: any) => d.taskPackageId === item.id);
+    }
+    if (include.extractedRequirements) {
+      item.extractedRequirements = data.extractedRequirement.filter((r: any) => r.taskPackageId === item.id);
+    }
+  }
+
   return item;
 }
 
