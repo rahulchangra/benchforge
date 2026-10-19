@@ -22,18 +22,18 @@ function latLongToVector3(lat: number, lon: number, radius: number): THREE.Vecto
   return new THREE.Vector3(x, y, z);
 }
 
-/* Sample global open-source repository clusters */
+/* Sample global open-source repository clusters - Solar Amber & Orange */
 const HUBS = [
-  { name: "San Francisco", lat: 37.77, lon: -122.41, color: "#10b981", repos: 420 },
-  { name: "Seattle", lat: 47.6, lon: -122.33, color: "#34d399", repos: 310 },
-  { name: "New York", lat: 40.71, lon: -74.0, color: "#06b6d4", repos: 290 },
-  { name: "London", lat: 51.5, lon: -0.12, color: "#38bdf8", repos: 380 },
-  { name: "Berlin", lat: 52.52, lon: 13.4, color: "#818cf8", repos: 250 },
-  { name: "Zurich", lat: 47.37, lon: 8.54, color: "#a78bfa", repos: 190 },
-  { name: "Bengaluru", lat: 12.97, lon: 77.59, color: "#f59e0b", repos: 340 },
-  { name: "Tokyo", lat: 35.67, lon: 139.65, color: "#ec4899", repos: 280 },
-  { name: "Sydney", lat: -33.86, lon: 151.2, color: "#06b6d4", repos: 160 },
-  { name: "Singapore", lat: 1.35, lon: 103.82, color: "#10b981", repos: 210 },
+  { name: "San Francisco", lat: 37.77, lon: -122.41, color: "#f59e0b", repos: 420 },
+  { name: "Seattle", lat: 47.6, lon: -122.33, color: "#f97316", repos: 310 },
+  { name: "New York", lat: 40.71, lon: -74.0, color: "#fbbf24", repos: 290 },
+  { name: "London", lat: 51.5, lon: -0.12, color: "#ea580c", repos: 380 },
+  { name: "Berlin", lat: 52.52, lon: 13.4, color: "#eab308", repos: 250 },
+  { name: "Zurich", lat: 47.37, lon: 8.54, color: "#f59e0b", repos: 190 },
+  { name: "Bengaluru", lat: 12.97, lon: 77.59, color: "#fb923c", repos: 340 },
+  { name: "Tokyo", lat: 35.67, lon: 139.65, color: "#fdba74", repos: 280 },
+  { name: "Sydney", lat: -33.86, lon: 151.2, color: "#f97316", repos: 160 },
+  { name: "Singapore", lat: 1.35, lon: 103.82, color: "#eab308", repos: 210 },
 ];
 
 const CONNECTIONS = [
@@ -61,9 +61,9 @@ function GlobePoints({ radius = 2.4 }: { radius?: number }) {
     const col = new Float32Array(count * 3);
     const phi = Math.PI * (3 - Math.sqrt(5)); // Golden angle
 
-    const emerald = new THREE.Color("#10b981");
-    const cyan = new THREE.Color("#06b6d4");
-    const dim = new THREE.Color("#1e293b");
+    const amber = new THREE.Color("#f59e0b");
+    const orange = new THREE.Color("#f97316");
+    const dim = new THREE.Color("#1c1815");
 
     for (let i = 0; i < count; i++) {
       const y = 1 - (i / (count - 1)) * 2;
@@ -77,9 +77,9 @@ function GlobePoints({ radius = 2.4 }: { radius?: number }) {
       pos[i * 3 + 1] = y * radius;
       pos[i * 3 + 2] = z * radius;
 
-      // Color variation: highlight dense bands
+      // Color variation: highlight dense bands in warm amber and solar orange
       const isClustered = Math.sin(x * 4) * Math.cos(z * 4) + y * 0.5 > 0.1;
-      const c = isClustered ? (i % 2 === 0 ? emerald : cyan) : dim;
+      const c = isClustered ? (i % 2 === 0 ? amber : orange) : dim;
 
       col[i * 3] = c.r;
       col[i * 3 + 1] = c.g;
@@ -193,9 +193,9 @@ function CyberRings({ radius = 2.4 }: { radius?: number }) {
       <mesh>
         <sphereGeometry args={[radius * 0.99, 32, 32]} />
         <meshBasicMaterial
-          color="#064e3b"
+          color="#451a03"
           transparent
-          opacity={0.12}
+          opacity={0.16}
           wireframe={false}
         />
       </mesh>
@@ -203,13 +203,13 @@ function CyberRings({ radius = 2.4 }: { radius?: number }) {
       {/* Primary Equator Ring */}
       <mesh ref={ringRef1} rotation={[Math.PI / 2.3, 0, 0]}>
         <ringGeometry args={[radius * 1.25, radius * 1.258, 64]} />
-        <meshBasicMaterial color="#10b981" transparent opacity={0.35} side={THREE.DoubleSide} />
+        <meshBasicMaterial color="#f59e0b" transparent opacity={0.4} side={THREE.DoubleSide} />
       </mesh>
 
       {/* Polar Coordinate Ring */}
       <mesh ref={ringRef2} rotation={[-Math.PI / 3, Math.PI / 5, 0]}>
         <ringGeometry args={[radius * 1.38, radius * 1.386, 64]} />
-        <meshBasicMaterial color="#06b6d4" transparent opacity={0.25} side={THREE.DoubleSide} />
+        <meshBasicMaterial color="#f97316" transparent opacity={0.3} side={THREE.DoubleSide} />
       </mesh>
     </group>
   );
@@ -274,7 +274,7 @@ export function InteractiveCyberGlobe({
     <div className={`relative ${className} select-none`}>
       {/* HUD Telemetry Overlay */}
       <div className="absolute top-4 left-4 z-20 pointer-events-none flex items-center gap-2.5">
-        <div className="flex h-2 w-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_#10b981]" />
+        <div className="flex h-2 w-2 rounded-full bg-amber-400 animate-pulse shadow-[0_0_8px_#f59e0b]" />
         <div className="text-[11px] font-mono uppercase tracking-wider text-neutral-400">
           <span className="text-white font-bold">CYBER MAP</span> // CURSOR TRACKING ACTIVE
         </div>
@@ -282,7 +282,7 @@ export function InteractiveCyberGlobe({
 
       <div className="absolute bottom-4 right-4 z-20 pointer-events-none hidden sm:flex items-center gap-2">
         <span className="text-[10px] font-mono text-neutral-500">ACTIVE CLUSTERS:</span>
-        <span className="text-[10px] font-mono text-emerald-400 font-semibold px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20">
+        <span className="text-[10px] font-mono text-amber-400 font-semibold px-2 py-0.5 rounded bg-amber-500/10 border border-amber-500/20">
           {HUBS.length} GLOBAL NODES
         </span>
       </div>
@@ -291,7 +291,7 @@ export function InteractiveCyberGlobe({
       <Suspense
         fallback={
           <div className="flex h-full w-full items-center justify-center">
-            <div className="h-32 w-32 rounded-full border border-emerald-500/20 bg-emerald-500/5 animate-pulse" />
+            <div className="h-32 w-32 rounded-full border border-amber-500/20 bg-amber-500/5 animate-pulse" />
           </div>
         }
       >
@@ -302,8 +302,8 @@ export function InteractiveCyberGlobe({
         >
           <ambientLight intensity={0.5} />
           <directionalLight position={[10, 10, 10]} intensity={1.2} color="#ffffff" />
-          <pointLight position={[-10, -5, -5]} intensity={1.5} color="#06b6d4" />
-          <pointLight position={[5, -5, 5]} intensity={1.2} color="#10b981" />
+          <pointLight position={[-10, -5, -5]} intensity={1.5} color="#f97316" />
+          <pointLight position={[5, -5, 5]} intensity={1.2} color="#f59e0b" />
           <InteractiveScene radius={radius} />
         </Canvas>
       </Suspense>

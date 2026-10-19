@@ -66,7 +66,7 @@ export function Sidebar({ onCollapse }: { onCollapse?: (collapsed: boolean) => v
               exit={{ opacity: 0 }}
               className="flex items-center gap-2.5"
             >
-              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-400 to-cyan-500 text-xs font-black text-black shadow-lg shadow-emerald-500/25">
+              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400 via-orange-500 to-amber-600 text-xs font-black text-black shadow-lg shadow-amber-500/25">
                 BF
               </div>
               <span className="text-sm font-bold tracking-tight text-white">BenchForge</span>
@@ -74,7 +74,7 @@ export function Sidebar({ onCollapse }: { onCollapse?: (collapsed: boolean) => v
           )}
         </AnimatePresence>
         {collapsed && (
-          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-400 to-cyan-500 text-xs font-black text-black shadow-lg shadow-emerald-500/25">
+          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400 via-orange-500 to-amber-600 text-xs font-black text-black shadow-lg shadow-amber-500/25">
             BF
           </div>
         )}
@@ -120,11 +120,11 @@ export function Sidebar({ onCollapse }: { onCollapse?: (collapsed: boolean) => v
               {isActive && (
                 <motion.div
                   layoutId="sidebar-active"
-                  className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-full bg-gradient-to-b from-emerald-400 to-cyan-400 shadow-[0_0_8px_#10b981]"
+                  className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-full bg-gradient-to-b from-amber-400 to-orange-500 shadow-[0_0_8px_#f59e0b]"
                   transition={{ type: "spring", stiffness: 350, damping: 30 }}
                 />
               )}
-              <Icon size={16} className={cn("shrink-0 transition-colors", isActive ? "text-emerald-400" : "text-neutral-400 group-hover:text-neutral-200")} />
+              <Icon size={16} className={cn("shrink-0 transition-colors", isActive ? "text-amber-400" : "text-neutral-400 group-hover:text-neutral-200")} />
               <AnimatePresence>
                 {!collapsed && (
                   <motion.span
@@ -143,7 +143,7 @@ export function Sidebar({ onCollapse }: { onCollapse?: (collapsed: boolean) => v
       </nav>
 
       {/* Bottom gradient hairline */}
-      <div className="h-px bg-gradient-to-r from-transparent via-emerald-500/20 to-transparent" />
+      <div className="h-px bg-gradient-to-r from-transparent via-amber-500/25 to-transparent" />
     </motion.aside>
   );
 }
@@ -153,7 +153,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <SidebarContext.Provider value={collapsed}>
-      <div className="flex min-h-screen bg-[#050508]">
+      <div className="flex min-h-screen bg-[#040407]">
         <Sidebar onCollapse={setCollapsed} />
         <motion.main
           animate={{ marginLeft: collapsed ? 68 : 260 }}

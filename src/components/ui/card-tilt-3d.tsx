@@ -13,7 +13,7 @@ interface CardTilt3DProps extends React.HTMLAttributes<HTMLDivElement> {
 export function CardTilt3D({
   children,
   className,
-  glowColor = "rgba(16, 185, 129, 0.2)",
+  glowColor = "rgba(245, 158, 11, 0.25)",
   ...props
 }: CardTilt3DProps) {
   const cardRef = useRef<HTMLDivElement>(null);

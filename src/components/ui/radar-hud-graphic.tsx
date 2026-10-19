@@ -33,8 +33,8 @@ export function RadarHudGraphic({ className = "w-full h-full" }: { className?: s
       ctx.clearRect(0, 0, size, size);
       angle += 0.025;
 
-      // Concentric Radar Rings
-      ctx.strokeStyle = "rgba(16, 185, 129, 0.18)";
+      // Concentric Radar Rings - Vintage Amber Scope
+      ctx.strokeStyle = "rgba(245, 158, 11, 0.22)";
       ctx.lineWidth = 1;
 
       [0.25, 0.5, 0.75, 1].forEach((fraction) => {
@@ -51,10 +51,10 @@ export function RadarHudGraphic({ className = "w-full h-full" }: { className?: s
       ctx.lineTo(cx, cy + radius);
       ctx.stroke();
 
-      // Rotating Radar Sweep Beam
+      // Rotating Radar Sweep Beam (Amber/Orange Conic Gradient)
       const gradient = ctx.createConicGradient(angle, cx, cy);
-      gradient.addColorStop(0, "rgba(16, 185, 129, 0.35)");
-      gradient.addColorStop(0.12, "rgba(6, 182, 212, 0.08)");
+      gradient.addColorStop(0, "rgba(245, 158, 11, 0.4)");
+      gradient.addColorStop(0.12, "rgba(249, 115, 22, 0.12)");
       gradient.addColorStop(0.25, "transparent");
       gradient.addColorStop(1, "transparent");
 
@@ -63,23 +63,23 @@ export function RadarHudGraphic({ className = "w-full h-full" }: { className?: s
       ctx.arc(cx, cy, radius, 0, Math.PI * 2);
       ctx.fill();
 
-      // Draw blips
+      // Draw blips (Warm orange glowing targets)
       blips.forEach((b) => {
         const bx = cx + Math.cos(b.theta) * b.r;
         const by = cy + Math.sin(b.theta) * b.r;
 
         // Angle difference with radar sweep
         const diff = Math.abs((angle % (Math.PI * 2)) - (b.theta % (Math.PI * 2)));
-        const intensity = diff < 0.3 ? 1 : 0.4;
+        const intensity = diff < 0.3 ? 1 : 0.45;
 
-        ctx.fillStyle = `rgba(52, 211, 153, ${intensity})`;
+        ctx.fillStyle = `rgba(251, 146, 60, ${intensity})`;
         ctx.beginPath();
         ctx.arc(bx, by, 3.5, 0, Math.PI * 2);
         ctx.fill();
 
         // Pulsing halo when sweep passes
         if (diff < 0.2) {
-          ctx.strokeStyle = "rgba(52, 211, 153, 0.6)";
+          ctx.strokeStyle = "rgba(245, 158, 11, 0.75)";
           ctx.beginPath();
           ctx.arc(bx, by, 8, 0, Math.PI * 2);
           ctx.stroke();

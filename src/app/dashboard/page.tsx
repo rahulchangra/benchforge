@@ -183,24 +183,24 @@ export default function DashboardPage() {
           transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
           className="relative overflow-hidden rounded-3xl border border-white/[0.08] bg-neutral-900/60 p-6 md:p-8 backdrop-blur-2xl shadow-[inset_0_1px_0_0_rgba(255,255,255,0.1),0_20px_50px_-20px_rgba(0,0,0,0.7)]"
         >
-          <BorderBeam size={280} duration={14} colorFrom="#10b981" colorTo="#06b6d4" />
+          <BorderBeam size={280} duration={14} colorFrom="#f59e0b" colorTo="#f97316" />
 
           <div className="relative z-10 grid gap-6 lg:grid-cols-12 lg:items-center">
             {/* Left Column: Command Info */}
             <div className="space-y-4 lg:col-span-8">
               <div className="flex flex-wrap items-center gap-2.5">
-                <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3.5 py-1 text-xs font-semibold text-emerald-400 backdrop-blur-md">
+                <div className="inline-flex items-center gap-2 rounded-full border border-amber-500/30 bg-amber-500/10 px-3.5 py-1 text-xs font-semibold text-amber-400 backdrop-blur-md">
                   <PulseIndicator active />
                   <span>OLYMPUS BENCHMARK ENGINE ONLINE</span>
                 </div>
-                <Badge variant="outline" className="border-cyan-500/30 bg-cyan-500/5 text-cyan-400 text-xs">
+                <Badge variant="outline" className="border-orange-500/30 bg-orange-500/10 text-orange-400 text-xs">
                   Autonomous Agent v2.4
                 </Badge>
               </div>
 
               <div>
                 <h1 className="text-3xl font-extrabold tracking-tight text-white md:text-4xl lg:text-5xl">
-                  Benchmark & Knowledge Studio
+                  Benchmark &amp; Knowledge Studio
                 </h1>
                 <p className="mt-2 max-w-2xl text-sm leading-relaxed text-neutral-400 md:text-base">
                   Automate Quest Olympus challenge synthesis: crawl GitHub issues, generate authentic
@@ -214,8 +214,8 @@ export default function DashboardPage() {
                   const Icon = action.icon;
                   return (
                     <Link key={action.label} href={action.href}>
-                      <button className="group relative flex items-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 py-2.5 text-xs font-medium text-neutral-200 backdrop-blur-md transition-all duration-300 hover:border-emerald-500/40 hover:bg-neutral-800/80 hover:text-white hover:shadow-[0_0_20px_-5px_rgba(16,185,129,0.3)]">
-                        <Icon size={14} className="text-emerald-400 transition-transform group-hover:scale-110" />
+                      <button className="group relative flex items-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 py-2.5 text-xs font-medium text-neutral-200 backdrop-blur-md transition-all duration-300 hover:border-amber-500/40 hover:bg-neutral-800/80 hover:text-white hover:shadow-[0_0_20px_-5px_rgba(245,158,11,0.3)]">
+                        <Icon size={14} className="text-amber-400 transition-transform group-hover:scale-110" />
                         <span>{action.label}</span>
                       </button>
                     </Link>
@@ -227,7 +227,7 @@ export default function DashboardPage() {
             {/* Right Column: 3D Interactive Cyber Core */}
             <div className="hidden lg:col-span-4 lg:flex lg:items-center lg:justify-center">
               <div className="relative h-[220px] w-[220px]">
-                <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-emerald-500/20 via-cyan-500/10 to-transparent blur-2xl" />
+                <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-amber-500/25 via-orange-500/15 to-transparent blur-2xl" />
                 <CyberCore3D className="h-full w-full" />
               </div>
             </div>
@@ -238,7 +238,7 @@ export default function DashboardPage() {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_10px_#10b981]" />
+              <span className="h-2 w-2 rounded-full bg-amber-400 shadow-[0_0_10px_#f59e0b]" />
               <h2 className="text-xs font-bold uppercase tracking-wider text-neutral-400">
                 Engine A: Benchmark Intelligence
               </h2>
@@ -246,9 +246,9 @@ export default function DashboardPage() {
             <span className="text-xs font-mono text-neutral-500">Live Telemetry</span>
           </div>
 
-          <StaggerContainer className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <StaggerContainer className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4" staggerDelay={0.06}>
             <StaggerItem>
-              <SpotlightCard spotlightColor="rgba(16, 185, 129, 0.15)">
+              <SpotlightCard spotlightColor="rgba(245, 158, 11, 0.2)">
                 <div className="flex items-start justify-between">
                   <div>
                     <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">
@@ -257,9 +257,9 @@ export default function DashboardPage() {
                     <p className="mt-2 text-3xl font-extrabold tracking-tight text-white">
                       <AnimatedCounter value={d.repositories.discovered} />
                     </p>
-                    <p className="mt-1 text-xs text-neutral-500">Indexed & Analyzed</p>
+                    <p className="mt-1 text-xs text-neutral-500">Indexed &amp; Analyzed</p>
                   </div>
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20">
                     <GitBranch size={18} />
                   </div>
                 </div>
@@ -267,7 +267,7 @@ export default function DashboardPage() {
             </StaggerItem>
 
             <StaggerItem>
-              <SpotlightCard spotlightColor="rgba(6, 182, 212, 0.15)">
+              <SpotlightCard spotlightColor="rgba(249, 115, 22, 0.2)">
                 <div className="flex items-start justify-between">
                   <div>
                     <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">
@@ -278,7 +278,7 @@ export default function DashboardPage() {
                     </p>
                     <p className="mt-1 text-xs text-neutral-500">MIT / BSD / Apache</p>
                   </div>
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-500/10 text-orange-400 border border-orange-500/20">
                     <Shield size={18} />
                   </div>
                 </div>
@@ -346,13 +346,13 @@ export default function DashboardPage() {
             </div>
           </SpotlightCard>
 
-          <SpotlightCard spotlightColor="rgba(16, 185, 129, 0.15)">
+          <SpotlightCard spotlightColor="rgba(245, 158, 11, 0.2)">
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs font-semibold text-neutral-400 uppercase tracking-wider flex items-center gap-1.5">
-                <TrendingUp size={14} className="text-emerald-400" />
+                <TrendingUp size={14} className="text-amber-400" />
                 Validation Success Rate
               </span>
-              <span className="text-xs font-bold text-emerald-400 font-mono">
+              <span className="text-xs font-bold text-amber-400 font-mono">
                 {d.benchmarks.validationRate}%
               </span>
             </div>
@@ -553,15 +553,15 @@ export default function DashboardPage() {
           <div className="relative overflow-hidden rounded-2xl border border-white/[0.08] bg-neutral-900/60 p-6 backdrop-blur-xl shadow-[inset_0_1px_0_0_rgba(255,255,255,0.08)]">
             <div className="flex items-center justify-between mb-5">
               <div className="flex items-center gap-2">
-                <Clock size={18} className="text-cyan-400" />
-                <h3 className="font-semibold text-neutral-200">Autonomous Radar & Live Telemetry</h3>
+                <Clock size={18} className="text-amber-400" />
+                <h3 className="font-semibold text-neutral-200">Autonomous Radar &amp; Live Telemetry</h3>
               </div>
               <span className="flex items-center gap-1.5 text-xs text-neutral-500 font-mono">
                 <PulseIndicator active /> TARGET ACQUISITION
               </span>
             </div>
 
-            {/* Radar Spectrometer HUD Graphic */}
+            {/* Radar Spectrometer HUD Graphic (Vintage Amber Scope) */}
             <div className="mb-6 p-4 rounded-xl border border-white/[0.06] bg-black/50 flex flex-col sm:flex-row items-center gap-5">
               <div className="w-[180px] h-[180px] shrink-0 flex items-center justify-center relative">
                 <RadarHudGraphic className="w-full h-full" />
@@ -569,11 +569,11 @@ export default function DashboardPage() {
               <div className="flex-1 w-full space-y-2 text-xs font-mono">
                 <div className="flex items-center justify-between pb-1.5 border-b border-white/[0.06]">
                   <span className="text-neutral-500">RADAR FREQUENCY:</span>
-                  <span className="text-emerald-400 font-bold">5.8 GHz PULSE</span>
+                  <span className="text-amber-400 font-bold">5.8 GHz PULSE</span>
                 </div>
                 <div className="flex items-center justify-between pb-1.5 border-b border-white/[0.06]">
                   <span className="text-neutral-500">TARGET SWEEP:</span>
-                  <span className="text-cyan-400 font-bold">360° CONTINUOUS</span>
+                  <span className="text-orange-400 font-bold">360° CONTINUOUS</span>
                 </div>
                 <div className="flex items-center justify-between pb-1.5 border-b border-white/[0.06]">
                   <span className="text-neutral-500">ACQUIRED REPOS:</span>
@@ -592,7 +592,7 @@ export default function DashboardPage() {
                   key={i}
                   className="flex items-center gap-3 rounded-xl border border-white/[0.04] bg-neutral-950/50 p-3 transition-colors hover:border-white/[0.08]"
                 >
-                  <div className="h-2 w-2 rounded-full bg-cyan-400 shadow-[0_0_8px_#06b6d4] shrink-0" />
+                  <div className="h-2 w-2 rounded-full bg-amber-400 shadow-[0_0_8px_#f59e0b] shrink-0" />
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-medium text-neutral-200">

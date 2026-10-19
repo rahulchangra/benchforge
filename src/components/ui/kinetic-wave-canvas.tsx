@@ -38,16 +38,16 @@ export function KineticWaveCanvas({
 
     window.addEventListener("mousemove", handleMouseMove);
 
-    // Motion parameters
+    // Motion parameters - Warm amber, solar orange, and golden embers
     let step = 0;
     const lines = [
-      { color: "rgba(16, 185, 129, 0.45)", speed: 0.015, amplitude: 38, wavelength: 0.008 },
-      { color: "rgba(6, 182, 212, 0.4)", speed: 0.02, amplitude: 48, wavelength: 0.006 },
-      { color: "rgba(139, 92, 246, 0.35)", speed: 0.012, amplitude: 32, wavelength: 0.01 },
-      { color: "rgba(52, 211, 153, 0.25)", speed: 0.018, amplitude: 55, wavelength: 0.005 },
+      { color: "rgba(245, 158, 11, 0.5)", speed: 0.015, amplitude: 42, wavelength: 0.008 },
+      { color: "rgba(249, 115, 22, 0.45)", speed: 0.02, amplitude: 52, wavelength: 0.006 },
+      { color: "rgba(234, 179, 8, 0.35)", speed: 0.012, amplitude: 36, wavelength: 0.01 },
+      { color: "rgba(251, 146, 60, 0.3)", speed: 0.018, amplitude: 60, wavelength: 0.005 },
     ];
 
-    // Floating kinetic particles
+    // Floating kinetic particles (Warm golden sparks & ember flares)
     const particleCount = 45;
     const particles = Array.from({ length: particleCount }).map(() => ({
       x: Math.random() * width,
@@ -55,7 +55,7 @@ export function KineticWaveCanvas({
       size: Math.random() * 2 + 1,
       vx: (Math.random() - 0.5) * 0.4,
       vy: (Math.random() - 0.5) * 0.4,
-      color: Math.random() > 0.5 ? "rgba(16, 185, 129, 0.6)" : "rgba(6, 182, 212, 0.6)",
+      color: Math.random() > 0.5 ? "rgba(245, 158, 11, 0.65)" : "rgba(249, 115, 22, 0.65)",
     }));
 
     const render = () => {

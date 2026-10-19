@@ -36,9 +36,9 @@ function CoreMesh() {
       <mesh ref={meshRef} scale={1.8}>
         <icosahedronGeometry args={[1, 1]} />
         <meshStandardMaterial
-          color="#10b981"
-          emissive="#064e3b"
-          emissiveIntensity={0.5}
+          color="#f59e0b"
+          emissive="#78350f"
+          emissiveIntensity={0.6}
           roughness={0.15}
           metalness={0.9}
           wireframe={false}
@@ -49,10 +49,10 @@ function CoreMesh() {
       <mesh scale={1.85}>
         <icosahedronGeometry args={[1, 1]} />
         <meshBasicMaterial
-          color="#34d399"
+          color="#fbbf24"
           wireframe
           transparent
-          opacity={0.4}
+          opacity={0.45}
         />
       </mesh>
 
@@ -60,8 +60,8 @@ function CoreMesh() {
       <mesh ref={ringRef1} rotation={[Math.PI / 4, 0, 0]}>
         <torusGeometry args={[2.6, 0.025, 16, 100]} />
         <meshStandardMaterial
-          color="#06b6d4"
-          emissive="#0891b2"
+          color="#f97316"
+          emissive="#c2410c"
           emissiveIntensity={1.2}
           roughness={0.2}
           metalness={0.8}
@@ -72,8 +72,8 @@ function CoreMesh() {
       <mesh ref={ringRef2} rotation={[-Math.PI / 3, Math.PI / 6, 0]}>
         <torusGeometry args={[3.1, 0.02, 16, 100]} />
         <meshStandardMaterial
-          color="#8b5cf6"
-          emissive="#6d28d9"
+          color="#ea580c"
+          emissive="#9a3412"
           emissiveIntensity={0.8}
           roughness={0.2}
           metalness={0.8}
@@ -113,7 +113,7 @@ function FloatingParticles({ count = 120 }: { count?: number }) {
       </bufferGeometry>
       <pointsMaterial
         size={0.06}
-        color="#38bdf8"
+        color="#fbbf24"
         transparent
         opacity={0.7}
         sizeAttenuation
@@ -134,7 +134,7 @@ export function CyberCore3D({
       <Suspense
         fallback={
           <div className="flex h-full w-full items-center justify-center">
-            <div className="h-24 w-24 animate-pulse rounded-full border border-emerald-500/20 bg-emerald-500/5" />
+            <div className="h-24 w-24 animate-pulse rounded-full border border-amber-500/20 bg-amber-500/5" />
           </div>
         }
       >
@@ -145,8 +145,8 @@ export function CyberCore3D({
         >
           <ambientLight intensity={0.4} />
           <directionalLight position={[10, 10, 5]} intensity={1.2} color="#ffffff" />
-          <pointLight position={[-8, -5, -5]} intensity={1.5} color="#06b6d4" />
-          <pointLight position={[5, -5, 5]} intensity={1} color="#10b981" />
+          <pointLight position={[-8, -5, -5]} intensity={1.5} color="#ea580c" />
+          <pointLight position={[5, -5, 5]} intensity={1.2} color="#f59e0b" />
           <CoreMesh />
           <FloatingParticles count={140} />
         </Canvas>

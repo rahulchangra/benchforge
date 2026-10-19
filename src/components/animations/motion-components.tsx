@@ -157,7 +157,7 @@ export function PulseIndicator({
     <span className={cn("relative flex h-2.5 w-2.5", className)}>
       {active && (
         <motion.span
-          className="absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"
+          className="absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"
           animate={{ scale: [1, 1.5, 1], opacity: [0.75, 0, 0.75] }}
           transition={{ duration: 1.5, repeat: Infinity }}
         />
@@ -165,7 +165,7 @@ export function PulseIndicator({
       <span
         className={cn(
           "relative inline-flex h-2.5 w-2.5 rounded-full",
-          active ? "bg-green-500" : "bg-neutral-600",
+          active ? "bg-amber-500" : "bg-neutral-600",
         )}
       />
     </span>
@@ -195,7 +195,7 @@ export function AnimatedProgress({
       )}
       <div className="h-2 w-full overflow-hidden rounded-full bg-neutral-800">
         <motion.div
-          className="h-full rounded-full bg-blue-500"
+          className="h-full rounded-full bg-gradient-to-r from-amber-500 to-orange-500"
           initial={{ width: 0 }}
           animate={{ width: `${percentage}%` }}
           transition={{ duration: 0.8, ease: "easeOut" }}
@@ -225,8 +225,8 @@ export function GlowCard({
       viewport={{ once: true, margin: "-40px" }}
       transition={{ duration: 0.5, ease: "easeOut" }}
     >
-      <div className="absolute -inset-px rounded-2xl bg-gradient-to-br from-emerald-500/20 via-cyan-500/10 to-transparent opacity-0 blur-sm transition-opacity duration-500 group-hover:opacity-100" />
-      <div className="absolute -inset-px rounded-2xl bg-gradient-to-br from-emerald-500/30 via-cyan-500/20 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+      <div className="absolute -inset-px rounded-2xl bg-gradient-to-br from-amber-500/20 via-orange-500/10 to-transparent opacity-0 blur-sm transition-opacity duration-500 group-hover:opacity-100" />
+      <div className="absolute -inset-px rounded-2xl bg-gradient-to-br from-amber-500/30 via-orange-500/20 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
       <div className="relative rounded-2xl border border-white/[0.06] bg-neutral-900/60 p-6 backdrop-blur-xl transition-colors duration-300 group-hover:border-white/[0.1] group-hover:bg-neutral-900/80">
         {children}
       </div>
@@ -373,9 +373,9 @@ export function TypewriterText({
 export function GradientText({
   children,
   className,
-  from = "from-emerald-400",
-  via = "via-cyan-400",
-  to = "to-blue-500",
+  from = "from-amber-400",
+  via = "via-orange-400",
+  to = "to-yellow-300",
 }: {
   children: React.ReactNode;
   className?: string;
@@ -443,7 +443,7 @@ export function ShimmerButton({
   return (
     <button
       className={cn(
-        "relative inline-flex items-center justify-center overflow-hidden rounded-xl bg-gradient-to-r from-emerald-500 to-cyan-500 px-8 py-3 text-sm font-semibold text-white transition-shadow hover:shadow-lg hover:shadow-emerald-500/25",
+        "relative inline-flex items-center justify-center overflow-hidden rounded-xl bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 px-8 py-3 text-sm font-bold text-black transition-shadow hover:shadow-lg hover:shadow-amber-500/30",
         className,
       )}
       {...props}

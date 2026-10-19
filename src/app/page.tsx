@@ -128,7 +128,7 @@ const bentoFeatures = [
     description:
       "Indexes public repositories across GitHub with >= 500 stars and permissive open-source licenses. Automatically matches closed issues with merged pull requests and test suites.",
     badge: ">= 500 Stars Filter",
-    color: "#10b981",
+    color: "#f59e0b",
   },
   {
     span: "col-span-12 lg:col-span-5",
@@ -138,7 +138,7 @@ const bentoFeatures = [
     description:
       "Auditable verification against 45+ approved SPDX licenses (MIT, Apache-2.0, BSD). Excludes ambiguous and copyleft licenses with transparent decision logs.",
     badge: "100% Permissive",
-    color: "#06b6d4",
+    color: "#f97316",
   },
   {
     span: "col-span-12 lg:col-span-5",
@@ -147,8 +147,8 @@ const bentoFeatures = [
     title: "Knowledge Tree & Recipe Synthesis",
     description:
       "Learns from uploaded approved tasks. Automatically extracts prompt structures, testing frameworks (pytest, vitest, cargo), and container setups into your project tree.",
-    badge: "Self-Adapting",
-    color: "#8b5cf6",
+    badge: "Self-Adapting AST",
+    color: "#fbbf24",
   },
   {
     span: "col-span-12 lg:col-span-7",
@@ -158,7 +158,7 @@ const bentoFeatures = [
     description:
       "Bundles the entire challenge package into an Olympus-compliant .ZIP archive containing task.md, test.sh, test.patch, solution.patch, and Dockerfile ready for immediate upload.",
     badge: "Instant .ZIP Archive",
-    color: "#f59e0b",
+    color: "#ea580c",
   },
 ];
 
@@ -193,16 +193,16 @@ export default function LandingPage() {
   return (
     <div
       ref={containerRef}
-      className="relative min-h-screen bg-[#030306] text-neutral-100 selection:bg-emerald-500 selection:text-black overflow-x-hidden font-sans"
+      className="relative min-h-screen bg-[#040407] text-neutral-100 selection:bg-amber-500 selection:text-black overflow-x-hidden font-sans"
     >
-      {/* ── Apple-Style Top Scroll Hairline ── */}
+      {/* ── Apple-Style Top Scroll Hairline (Solar Amber to Orange) ── */}
       <motion.div
         style={{ scaleX: smoothProgress }}
-        className="fixed top-0 left-0 right-0 h-[2.5px] origin-left bg-gradient-to-r from-emerald-400 via-cyan-400 to-blue-500 z-50 shadow-[0_0_15px_rgba(16,185,129,0.9)]"
+        className="fixed top-0 left-0 right-0 h-[2.5px] origin-left bg-gradient-to-r from-amber-400 via-orange-500 to-yellow-400 z-50 shadow-[0_0_15px_rgba(245,158,11,0.9)]"
       />
 
       {/* ── Ambient Background Lighting (Aurora & Cyber Matrix) ── */}
-      <div className="pointer-events-none fixed inset-0 z-0 aurora-bg opacity-75" />
+      <div className="pointer-events-none fixed inset-0 z-0 aurora-bg opacity-80" />
       <div className="pointer-events-none fixed inset-0 z-0 cyber-dots opacity-25" />
 
       {/* ── VisionOS Floating Island Header ── */}
@@ -215,10 +215,10 @@ export default function LandingPage() {
         >
           {/* Brand */}
           <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-emerald-400 to-cyan-500 text-xs font-black text-black shadow-md shadow-emerald-500/30 group-hover:scale-105 transition-transform">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-amber-400 via-orange-500 to-amber-600 text-xs font-black text-black shadow-md shadow-amber-500/30 group-hover:scale-105 transition-transform">
               BF
             </div>
-            <span className="text-sm font-bold tracking-tight text-white group-hover:text-emerald-400 transition-colors">
+            <span className="text-sm font-bold tracking-tight text-white group-hover:text-amber-400 transition-colors">
               BenchForge
             </span>
           </Link>
@@ -271,42 +271,40 @@ export default function LandingPage() {
             {/* Left Column: Vision & Pitch */}
             <div className="text-center lg:text-left lg:col-span-6 space-y-6">
               {/* VisionOS Spec Badge */}
-              <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 backdrop-blur-xl">
+              <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 backdrop-blur-xl">
                 <PulseIndicator active />
-                <span className="text-xs font-semibold text-emerald-400 tracking-wider uppercase">
+                <span className="text-xs font-semibold text-amber-400 tracking-wider uppercase">
                   Quest Olympus AI Benchmark Platform
                 </span>
               </div>
 
               {/* Headline */}
               <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight leading-[1.04] text-white">
-                Global Code.{" "}
+                Real Code.{" "}
                 <br className="hidden sm:block" />
                 <span className="apple-hero-gradient">Verified Benchmarks.</span>
                 <br />
-                <GradientText from="from-emerald-400" via="via-cyan-300" to="to-teal-200">
-                  Zero AI Fluff.
+                <GradientText from="from-amber-400" via="via-orange-400" to="to-yellow-300">
+                  Zero AI Slop.
                 </GradientText>
               </h1>
 
               <p className="max-w-xl text-base sm:text-lg text-neutral-400 leading-relaxed mx-auto lg:mx-0">
-                Move your cursor over the interactive Cyber Map. Our autonomous engine continuously scans global
-                repositories (&gt;= 500 stars, permissive license), generates isolated regression test patches,
-                and outputs submission-ready packages.
+                Move your cursor over the interactive Amber Topology. We crawl real GitHub production repositories (&gt;= 500 stars, permissive license), extract isolated regression test patches, and output 100% submission-ready packages with zero hallucinated boilerplate.
               </p>
 
               {/* Action Buttons */}
               <div className="pt-2 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
                 <Link href="/dashboard">
-                  <button className="group relative flex items-center gap-2.5 px-8 py-4 rounded-full bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-white font-semibold text-sm shadow-[0_0_35px_-5px_rgba(16,185,129,0.5)] hover:shadow-[0_0_45px_-5px_rgba(16,185,129,0.7)] transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]">
+                  <button className="group relative flex items-center gap-2.5 px-8 py-4 rounded-full bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 text-black font-bold text-sm shadow-[0_0_35px_-5px_rgba(245,158,11,0.6)] hover:shadow-[0_0_45px_-5px_rgba(245,158,11,0.8)] transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]">
                     <Rocket size={16} />
-                    <span>Start Autonomous Pipeline</span>
+                    <span>Launch Benchmark Engine</span>
                     <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
                   </button>
                 </Link>
                 <Link href="/projects">
                   <button className="apple-glass-pill flex items-center gap-2 px-6 py-4 rounded-full text-sm font-medium text-neutral-300 hover:text-white hover:bg-white/[0.1] transition-all">
-                    <BookOpen size={16} className="text-cyan-400" />
+                    <BookOpen size={16} className="text-amber-400" />
                     <span>Knowledge Studio</span>
                   </button>
                 </Link>
@@ -315,11 +313,11 @@ export default function LandingPage() {
               {/* HUD Telemetry Stats */}
               <div className="pt-4 flex flex-wrap items-center justify-center lg:justify-start gap-5 text-xs text-neutral-400 font-mono">
                 <div className="flex items-center gap-1.5 bg-white/[0.03] px-3 py-1.5 rounded-lg border border-white/[0.08]">
-                  <Compass size={13} className="text-emerald-400" />
+                  <Compass size={13} className="text-amber-400" />
                   <span>Interactive 3D Mouse Parallax</span>
                 </div>
                 <div className="flex items-center gap-1.5 bg-white/[0.03] px-3 py-1.5 rounded-lg border border-white/[0.08]">
-                  <Check size={13} className="text-cyan-400" />
+                  <Check size={13} className="text-orange-400" />
                   <span>100% Human Prompt Voice</span>
                 </div>
               </div>
@@ -328,7 +326,7 @@ export default function LandingPage() {
             {/* Right Column: Interactive 3D Cyber Globe & Topology Map */}
             <div className="lg:col-span-6 flex items-center justify-center relative">
               <div className="apple-glass-card relative w-full max-w-[520px] aspect-square rounded-[36px] p-2 flex items-center justify-center overflow-hidden border border-white/[0.14] shadow-[0_30px_70px_-20px_rgba(0,0,0,0.9)]">
-                <BorderBeam size={300} duration={14} colorFrom="#10b981" colorTo="#06b6d4" />
+                <BorderBeam size={300} duration={14} colorFrom="#f59e0b" colorTo="#f97316" />
                 <InteractiveCyberGlobe className="h-full w-full" radius={2.25} />
               </div>
             </div>
@@ -343,7 +341,7 @@ export default function LandingPage() {
       <section id="demos" className="relative py-28 px-6 border-t border-white/[0.06]">
         <div className="max-w-6xl mx-auto space-y-10">
           <FadeInSection className="text-center space-y-3">
-            <span className="text-xs font-bold uppercase tracking-widest text-emerald-400">
+            <span className="text-xs font-bold uppercase tracking-widest text-amber-400">
               Verifiable Outputs
             </span>
             <h2 className="text-3xl sm:text-5xl font-black text-white tracking-tight">
@@ -363,7 +361,7 @@ export default function LandingPage() {
                   onClick={() => setActiveTab(idx)}
                   className={`relative px-4 py-2 rounded-full text-xs font-semibold transition-all duration-300 ${
                     activeTab === idx
-                      ? "text-white bg-white/[0.15] shadow-lg shadow-black/40 border border-white/[0.15]"
+                      ? "text-black bg-gradient-to-r from-amber-400 to-orange-400 font-bold shadow-lg shadow-amber-500/30"
                       : "text-neutral-400 hover:text-white"
                   }`}
                 >
@@ -399,7 +397,7 @@ export default function LandingPage() {
                   onClick={handleCopy}
                   className="flex items-center gap-1.5 px-3 py-1 rounded-lg border border-white/[0.1] bg-white/[0.04] text-[11px] text-neutral-300 hover:bg-white/[0.08] transition-colors"
                 >
-                  {copied ? <Check size={12} className="text-emerald-400" /> : <Copy size={12} />}
+                  {copied ? <Check size={12} className="text-amber-400" /> : <Copy size={12} />}
                   <span>{copied ? "Copied" : "Copy"}</span>
                 </button>
               </div>
@@ -422,7 +420,7 @@ export default function LandingPage() {
       <section id="features" className="relative py-28 px-6 border-t border-white/[0.06]">
         <div className="max-w-7xl mx-auto space-y-14">
           <FadeInSection className="text-center space-y-3">
-            <span className="text-xs font-bold uppercase tracking-widest text-cyan-400">
+            <span className="text-xs font-bold uppercase tracking-widest text-orange-400">
               3D Interactive Bento
             </span>
             <h2 className="text-3xl sm:text-5xl font-black text-white tracking-tight">
@@ -439,11 +437,11 @@ export default function LandingPage() {
               const Icon = bento.icon;
               return (
                 <div key={bento.title} className={`${bento.span}`}>
-                  <CardTilt3D glowColor="rgba(16, 185, 129, 0.25)">
+                  <CardTilt3D glowColor="rgba(245, 158, 11, 0.25)">
                     <div className="flex flex-col justify-between h-full">
                       <div>
                         <div className="flex items-center justify-between mb-6">
-                          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500/20 to-cyan-500/20 text-emerald-400 border border-emerald-500/30">
+                          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-500/20 to-orange-500/20 text-amber-400 border border-amber-500/30">
                             <Icon size={22} />
                           </div>
                           <span className="px-3 py-1 rounded-full text-xs font-semibold bg-white/[0.06] border border-white/[0.1] text-neutral-300">
@@ -462,8 +460,8 @@ export default function LandingPage() {
                       </div>
 
                       <div className="pt-6 mt-6 border-t border-white/[0.06] flex items-center justify-between">
-                        <span className="text-xs font-medium text-emerald-400 flex items-center gap-1.5">
-                          <Check size={14} /> Automated & Verified
+                        <span className="text-xs font-medium text-amber-400 flex items-center gap-1.5">
+                          <Check size={14} /> Automated &amp; Verified
                         </span>
                         <ArrowRight size={14} className="text-neutral-500" />
                       </div>
@@ -525,7 +523,7 @@ export default function LandingPage() {
       <footer className="border-t border-white/[0.06] py-14 px-6 text-xs text-neutral-500 bg-[#020204]">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-3">
-            <div className="h-6 w-6 rounded-full bg-gradient-to-br from-emerald-400 to-cyan-500 flex items-center justify-center text-[10px] font-bold text-black">
+            <div className="h-6 w-6 rounded-full bg-gradient-to-br from-amber-400 via-orange-500 to-amber-600 flex items-center justify-center text-[10px] font-bold text-black shadow-md shadow-amber-500/20">
               BF
             </div>
             <span className="font-semibold text-neutral-300">BenchForge SaaS</span>
