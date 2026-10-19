@@ -66,9 +66,13 @@ function TreeNode({ node, allNodes, expanded, toggleExpand, level, onAddChild }:
   onAddChild: (parentId: string) => void;
 }) {
   const isExpanded = expanded.has(node.id);
-  const hasChildren = node.children.length > 0 || node._count.children > 0;
-  const childNodes = allNodes.filter((n) => node.children.some((c) => c.id === n.id));
+  const childrenCount = node._count?.children ?? node.children?.length ?? 0;
+  const hasChildren = (node.children?.length ?? 0) > 0 || childrenCount > 0;
+  const childNodes = allNodes.filter((n) => (node.children ?? []).some((c) => c.id === n.id));
   const typeColor = TYPE_COLORS[node.type] ?? "bg-neutral-500/20 text-neutral-300 border-neutral-500/30";
+  const outgoingCount = node._count?.outgoingEdges ?? node.outgoingEdges?.length ?? 0;
+  const incomingCount = node._count?.incomingEdges ?? node.incomingEdges?.length ?? 0;
+  const totalEdges = outgoingCount + incomingCount;
 
   return (
     <div style={{ paddingLeft: `${level * 24}px` }}>
@@ -95,8 +99,8 @@ function TreeNode({ node, allNodes, expanded, toggleExpand, level, onAddChild }:
             />
           </div>
           <span className="text-[10px] text-neutral-500 w-8">{Math.round((node.confidence ?? 0.5) * 100)}%</span>
-          {(node._count.outgoingEdges + node._count.incomingEdges) > 0 && (
-            <span className="text-[10px] text-neutral-600">{node._count.outgoingEdges + node._count.incomingEdges} edges</span>
+          {totalEdges > 0 && (
+            <span className="text-[10px] text-neutral-600">{totalEdges} edges</span>
           )}
           <button
             onClick={() => onAddChild(node.id)}
@@ -122,10 +126,10 @@ function TreeNode({ node, allNodes, expanded, toggleExpand, level, onAddChild }:
           ))}
         </div>
       )}
-      {isExpanded && node._count.children > childNodes.length && (
+      {isExpanded && childrenCount > childNodes.length && (
         <div style={{ paddingLeft: `${(level + 1) * 24}px` }}>
           <p className="text-xs text-neutral-600 px-3 py-1">
-            +{node._count.children - childNodes.length} more children (not loaded)
+            +{childrenCount - childNodes.length} more children (not loaded)
           </p>
         </div>
       )}
@@ -153,7 +157,14 @@ export default function ConceptGraphPage() {
   useEffect(() => {
     fetch("/api/learning/workspaces")
       .then((r) => r.json())
-      .then((json) => { if (json.success) setWorkspaces(json.data ?? []); })
+      .then((json) => {
+        if (json.success && json.data) {
+          setWorkspaces(json.data);
+          if (json.data.length > 0) {
+            setSelectedWorkspace(json.data[0].id);
+          }
+        }
+      })
       .catch(() => {});
   }, []);
 
@@ -262,7 +273,7 @@ export default function ConceptGraphPage() {
             <SelectContent>
               {workspaces.map((ws) => (
                 <SelectItem key={ws.id} value={ws.id}>
-                  {ws.name} ({ws._count.knowledgeNodes} nodes)
+                  {ws.name} ({ws._count?.knowledgeNodes ?? 0} nodes)
                 </SelectItem>
               ))}
             </SelectContent>

@@ -469,10 +469,10 @@ export default function LearningPage() {
                             </span>
                           )}
                           <span className="text-neutral-400">
-                            {task._count.uploadedDocuments} extracted files
+                            {task._count?.uploadedDocuments ?? task.uploadedDocuments?.length ?? 0} extracted files
                           </span>
                           <span className="text-neutral-400">
-                            {task._count.extractedRequirements} requirements
+                            {task._count?.extractedRequirements ?? task.extractedRequirements?.length ?? 0} requirements
                           </span>
                           <span>v{task.version}</span>
                         </div>

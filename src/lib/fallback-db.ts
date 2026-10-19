@@ -497,6 +497,7 @@ Refining until you've ruled out obvious issues is the path to clean approval wit
   });
 
   // 11. Learning Workspace & Knowledge Graph
+  // 11. Learning Workspace & Knowledge Graph
   const workspace = {
     id: "ws-default",
     name: "Quest Olympus Platform Knowledge Base",
@@ -507,21 +508,77 @@ Refining until you've ruled out obvious issues is the path to clean approval wit
   };
   data.learningWorkspace.push(workspace);
 
-  const nodePrompt = {
-    id: "kn-01",
+  // Hierarchical Knowledge Nodes (Domains -> Topics -> Concepts / Patterns)
+  // --- DOMAIN 1: Quest Olympus Benchmark Engineering ---
+  const nodeDomainOlympus = {
+    id: "kn-domain-olympus",
     workspaceId: workspace.id,
-    type: "REQUIREMENT_PATTERN",
-    name: "Authentic Problem Definition Formula",
-    definition: "Human developer voice: Reproduction code block, expected vs actual behavior, zero AI conversational markers.",
+    parentId: null,
+    type: "DOMAIN",
+    name: "Quest Olympus Benchmark Engineering",
+    definition: "Core principles and automated pipelines for synthesizing, verifying, and publishing high-star GitHub issue benchmarks.",
+    confidence: 0.99,
+    reviewStatus: "approved",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+
+  const nodeTopicPrompts = {
+    id: "kn-topic-prompts",
+    workspaceId: workspace.id,
+    parentId: "kn-domain-olympus",
+    type: "TOPIC",
+    name: "Synthetic Problem Prompts",
+    definition: "Framework for crafting realistic, non-AI human developer problem statements with authentic reproduction steps.",
     confidence: 0.96,
     reviewStatus: "approved",
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
 
-  const nodeTest = {
+  const nodePromptFormula = {
+    id: "kn-01",
+    workspaceId: workspace.id,
+    parentId: "kn-topic-prompts",
+    type: "REQUIREMENT_PATTERN",
+    name: "Authentic Problem Definition Formula",
+    definition: "Human developer voice: Reproduction code block, expected vs actual behavior, and zero AI conversational markers.",
+    confidence: 0.96,
+    reviewStatus: "approved",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+
+  const nodeReproTracing = {
+    id: "kn-req-iso",
+    workspaceId: workspace.id,
+    parentId: "kn-topic-prompts",
+    type: "REQUIREMENT_PATTERN",
+    name: "Reproduction Scope & Error Tracing",
+    definition: "Step-by-step minimal reproduction script highlighting the specific traceback and failure conditions.",
+    confidence: 0.94,
+    reviewStatus: "approved",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+
+  const nodeTopicTests = {
+    id: "kn-topic-tests",
+    workspaceId: workspace.id,
+    parentId: "kn-domain-olympus",
+    type: "TOPIC",
+    name: "Isolated Patch Harnessing",
+    definition: "Mechanisms to strictly isolate test assertions and ensure deterministic evaluation of agent fixes.",
+    confidence: 0.97,
+    reviewStatus: "approved",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+
+  const nodeTestHarness = {
     id: "kn-02",
     workspaceId: workspace.id,
+    parentId: "kn-topic-tests",
     type: "TESTING_STRATEGY",
     name: "Isolated Regression Harness",
     definition: "test.patch strictly confined to tests/ directory. Passes when solution is applied; fails before fix.",
@@ -531,9 +588,50 @@ Refining until you've ruled out obvious issues is the path to clean approval wit
     updatedAt: new Date().toISOString(),
   };
 
-  const nodeDocker = {
+  const nodePassVerification = {
+    id: "kn-eval-crit",
+    workspaceId: workspace.id,
+    parentId: "kn-topic-tests",
+    type: "EVALUATION_CRITERION",
+    name: "Pre-Fix vs Post-Fix Pass Verification",
+    definition: "Automated verification confirming test fails on base commit and passes 100% on solution.patch.",
+    confidence: 0.99,
+    reviewStatus: "approved",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+
+  // --- DOMAIN 2: Hermetic Execution & Containers ---
+  const nodeDomainContainers = {
+    id: "kn-domain-containers",
+    workspaceId: workspace.id,
+    parentId: null,
+    type: "DOMAIN",
+    name: "Hermetic Execution & Containers",
+    definition: "Containerization strategies for safe, reproducible, and isolated benchmark challenge evaluation.",
+    confidence: 0.98,
+    reviewStatus: "approved",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+
+  const nodeTopicDocker = {
+    id: "kn-topic-docker",
+    workspaceId: workspace.id,
+    parentId: "kn-domain-containers",
+    type: "TOPIC",
+    name: "Deterministic Dockerfile Recipes",
+    definition: "Multi-stage Docker build recipes providing pinned system dependencies and reproducible execution environments.",
+    confidence: 0.95,
+    reviewStatus: "approved",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+
+  const nodeDockerRecipe = {
     id: "kn-03",
     workspaceId: workspace.id,
+    parentId: "kn-topic-docker",
     type: "ARCHITECTURE_PATTERN",
     name: "Deterministic Base Container",
     definition: "Official slim base image, copy source, install editable package, non-root execution.",
@@ -543,14 +641,83 @@ Refining until you've ruled out obvious issues is the path to clean approval wit
     updatedAt: new Date().toISOString(),
   };
 
-  data.knowledgeNode.push(nodePrompt, nodeTest, nodeDocker);
+  const nodeRootlessSecurity = {
+    id: "kn-code-pat",
+    workspaceId: workspace.id,
+    parentId: "kn-topic-docker",
+    type: "CODE_PATTERN",
+    name: "Rootless Execution & Secret Redaction",
+    definition: "Sanitizing environment variables, blocking outbound internet where applicable, and running under non-root uid.",
+    confidence: 0.93,
+    reviewStatus: "approved",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
 
+  // --- DOMAIN 3: Systems Concurrency & Async Pipelines ---
+  const nodeDomainConcurrency = {
+    id: "kn-domain-concurrency",
+    workspaceId: workspace.id,
+    parentId: null,
+    type: "DOMAIN",
+    name: "Systems Concurrency & Async Pipelines",
+    definition: "High-throughput asynchronous worker pools, event loop integrity, and leak prevention algorithms.",
+    confidence: 0.96,
+    reviewStatus: "approved",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+
+  const nodeTopicAsync = {
+    id: "kn-topic-async",
+    workspaceId: workspace.id,
+    parentId: "kn-domain-concurrency",
+    type: "TOPIC",
+    name: "Async Streaming Worker Pools",
+    definition: "Pattern for managing inflight worker coroutines with timeout and graceful shutdown.",
+    confidence: 0.94,
+    reviewStatus: "approved",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+
+  const nodeGracefulShutdown = {
+    id: "kn-sol-strat",
+    workspaceId: workspace.id,
+    parentId: "kn-topic-async",
+    type: "SOLUTION_STRATEGY",
+    name: "Graceful Task Drain & Teardown",
+    definition: "Timeout-bounded task gather with exception catching, buffer draining, and clean worker pool termination.",
+    confidence: 0.96,
+    reviewStatus: "approved",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+
+  data.knowledgeNode.push(
+    nodeDomainOlympus,
+    nodeTopicPrompts,
+    nodePromptFormula,
+    nodeReproTracing,
+    nodeTopicTests,
+    nodeTestHarness,
+    nodePassVerification,
+    nodeDomainContainers,
+    nodeTopicDocker,
+    nodeDockerRecipe,
+    nodeRootlessSecurity,
+    nodeDomainConcurrency,
+    nodeTopicAsync,
+    nodeGracefulShutdown
+  );
+
+  // Knowledge Edges
   data.knowledgeEdge.push(
     {
       id: "ke-01",
       workspaceId: workspace.id,
-      sourceNodeId: nodePrompt.id,
-      targetNodeId: nodeTest.id,
+      sourceNodeId: nodePromptFormula.id,
+      targetNodeId: nodeTestHarness.id,
       type: "DEPENDS_ON",
       confidence: 0.95,
       createdAt: new Date().toISOString(),
@@ -558,11 +725,129 @@ Refining until you've ruled out obvious issues is the path to clean approval wit
     {
       id: "ke-02",
       workspaceId: workspace.id,
-      sourceNodeId: nodeTest.id,
-      targetNodeId: nodeDocker.id,
+      sourceNodeId: nodeTestHarness.id,
+      targetNodeId: nodeDockerRecipe.id,
       type: "TESTED_BY",
       confidence: 0.98,
       createdAt: new Date().toISOString(),
+    },
+    {
+      id: "ke-03",
+      workspaceId: workspace.id,
+      sourceNodeId: nodePassVerification.id,
+      targetNodeId: nodeTestHarness.id,
+      type: "EVALUATES",
+      confidence: 0.99,
+      createdAt: new Date().toISOString(),
+    },
+    {
+      id: "ke-04",
+      workspaceId: workspace.id,
+      sourceNodeId: nodeGracefulShutdown.id,
+      targetNodeId: nodeTopicAsync.id,
+      type: "IMPLEMENTS",
+      confidence: 0.95,
+      createdAt: new Date().toISOString(),
+    }
+  );
+
+  // 12. Seed Default Task Package
+  const demoTaskPkg = {
+    id: "task-pkg-01",
+    workspaceId: workspace.id,
+    title: "Async Stream Pipeline Memory Leak & Rejection Guard",
+    description: "Benchmark testing worker pool buffer release and unhandled promise rejection prevention under simulated abort signals.",
+    domain: "Python Backend & Systems",
+    category: "Concurrency & Memory Management",
+    approvalStatus: "APPROVED",
+    tags: JSON.stringify(["python", "asyncio", "pytest", "docker", "benchmark-task"]),
+    version: 1,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+  data.taskPackage.push(demoTaskPkg);
+
+  data.uploadedDocument.push(
+    {
+      id: "doc-01",
+      taskPackageId: demoTaskPkg.id,
+      filename: "problem.md",
+      originalName: "problem.md",
+      mimeType: "text/markdown",
+      size: 1420,
+      storagePath: `/uploads/${demoTaskPkg.id}/problem.md`,
+      extractedText: `# Async Stream Pipeline Memory Leak & Rejection Guard\n\n## Problem Statement\nIn high-concurrency streaming pipelines, the worker pool fails to release completed chunk buffers on client disconnects.\n\n## Reproduction Steps\n1. Initialize StreamingWorkerPool with concurrency = 4.\n2. Dispatch burst of 100 streaming tasks.\n3. Signal abort midway through processing.\n4. Check buffer memory allocation: buffers remain leaked in memory.`,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    },
+    {
+      id: "doc-02",
+      taskPackageId: demoTaskPkg.id,
+      filename: "test.patch",
+      originalName: "test.patch",
+      mimeType: "text/x-diff",
+      size: 1840,
+      storagePath: `/uploads/${demoTaskPkg.id}/test.patch`,
+      extractedText: `diff --git a/tests/test_stream_pipeline.py b/tests/test_stream_pipeline.py\nnew file mode 100644\n--- /dev/null\n+++ b/tests/test_stream_pipeline.py\n@@ -0,0 +1,28 @@\n+import pytest\n+import asyncio\n+from stream_pipeline import StreamingWorkerPool, AbortSignal\n+\n+@pytest.mark.asyncio\n+async def test_worker_pool_graceful_shutdown():\n+    pool = StreamingWorkerPool(concurrency=4)\n+    signal = AbortSignal()\n+    task = pool.dispatch(lambda: asyncio.sleep(0.4), signal=signal)\n+    signal.abort(reason="Client disconnected")\n+    result = await pool.drain(timeout=1.0)\n+    assert result.is_drained is True\n+    assert pool.active_workers == 0\n+    assert pool.has_leaked_buffers() is False\n`,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    },
+    {
+      id: "doc-03",
+      taskPackageId: demoTaskPkg.id,
+      filename: "solution.patch",
+      originalName: "solution.patch",
+      mimeType: "text/x-diff",
+      size: 1530,
+      storagePath: `/uploads/${demoTaskPkg.id}/solution.patch`,
+      extractedText: `diff --git a/src/stream_pipeline.py b/src/stream_pipeline.py\n--- a/src/stream_pipeline.py\n+++ b/src/stream_pipeline.py\n@@ -42,8 +42,15 @@ class StreamingWorkerPool:\n         if signal and signal.is_aborted:\n-            return None\n+            self._cleanup_buffer(task_id)\n+            raise PipelineError("Task aborted prior to execution")\n`,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    },
+    {
+      id: "doc-04",
+      taskPackageId: demoTaskPkg.id,
+      filename: "Dockerfile",
+      originalName: "Dockerfile",
+      mimeType: "text/x-dockerfile",
+      size: 420,
+      storagePath: `/uploads/${demoTaskPkg.id}/Dockerfile`,
+      extractedText: `FROM python:3.11-slim\nWORKDIR /workspace\nCOPY requirements.txt .\nRUN pip install --no-cache-dir pytest pytest-asyncio\nCOPY . .\nCMD ["pytest", "-v", "tests/"]\n`,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    },
+    {
+      id: "doc-05",
+      taskPackageId: demoTaskPkg.id,
+      filename: "test.sh",
+      originalName: "test.sh",
+      mimeType: "application/x-sh",
+      size: 260,
+      storagePath: `/uploads/${demoTaskPkg.id}/test.sh`,
+      extractedText: `#!/usr/bin/env bash\nset -eo pipefail\npytest tests/test_stream_pipeline.py -v --tb=short\nexit 0\n`,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    }
+  );
+
+  data.extractedRequirement.push(
+    {
+      id: "req-01",
+      taskPackageId: demoTaskPkg.id,
+      content: "Ensure aborted jobs drain inflight microtasks immediately and release buffer memory.",
+      type: "FUNCTIONAL",
+      priority: "CRITICAL",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    },
+    {
+      id: "req-02",
+      taskPackageId: demoTaskPkg.id,
+      content: "Must pass tests/test_stream_pipeline.py with pytest under Python 3.11.",
+      type: "TESTING",
+      priority: "HIGH",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     }
   );
 }
@@ -837,6 +1122,71 @@ function populateItem(modelKey: string, item: any, include?: Record<string, any>
     }
     if (include.extractedRequirements) {
       item.extractedRequirements = data.extractedRequirement.filter((r: any) => r.taskPackageId === item.id);
+    }
+  }
+
+  // Relations for knowledgeNode
+  if (modelKey === "knowledgeNode") {
+    const childrenList = (data.knowledgeNode || []).filter((n: any) => n.parentId === item.id);
+    const outgoingList = (data.knowledgeEdge || []).filter((e: any) => e.sourceNodeId === item.id);
+    const incomingList = (data.knowledgeEdge || []).filter((e: any) => e.targetNodeId === item.id);
+
+    if (include._count) {
+      item._count = {
+        children: childrenList.length,
+        outgoingEdges: outgoingList.length,
+        incomingEdges: incomingList.length,
+      };
+    }
+    if (include.children) {
+      item.children = childrenList.map((c: any) => ({
+        id: c.id,
+        name: c.name,
+        type: c.type,
+        confidence: c.confidence ?? 0.8,
+        definition: c.definition,
+      }));
+    }
+    if (include.outgoingEdges) {
+      item.outgoingEdges = outgoingList;
+    }
+    if (include.incomingEdges) {
+      item.incomingEdges = incomingList;
+    }
+    if (include.parent && item.parentId) {
+      const parentNode = (data.knowledgeNode || []).find((n: any) => n.id === item.parentId);
+      item.parent = parentNode ? { id: parentNode.id, name: parentNode.name, type: parentNode.type } : null;
+    }
+  }
+
+  // Relations for learningWorkspace
+  if (modelKey === "learningWorkspace") {
+    if (include._count) {
+      item._count = {
+        taskPackages: (data.taskPackage || []).filter((t: any) => t.workspaceId === item.id).length,
+        knowledgeNodes: (data.knowledgeNode || []).filter((n: any) => n.workspaceId === item.id).length,
+        knowledgeEdges: (data.knowledgeEdge || []).filter((e: any) => e.workspaceId === item.id).length,
+        generatedDrafts: (data.generatedDraft || []).filter((d: any) => d.workspaceId === item.id).length,
+      };
+    }
+    if (include.knowledgeNodes) {
+      item.knowledgeNodes = (data.knowledgeNode || []).filter((n: any) => n.workspaceId === item.id);
+    }
+    if (include.taskPackages) {
+      item.taskPackages = (data.taskPackage || []).filter((t: any) => t.workspaceId === item.id);
+    }
+  }
+
+  // Relations for generatedDraft
+  if (modelKey === "generatedDraft") {
+    if (include._count) {
+      item._count = {
+        humanReviews: (data.humanReview || []).filter((r: any) => r.generatedDraftId === item.id).length,
+        learningFeedback: (data.learningFeedback || []).filter((f: any) => f.generatedDraftId === item.id).length,
+      };
+    }
+    if (include.workspace) {
+      item.workspace = (data.learningWorkspace || []).find((w: any) => w.id === item.workspaceId) || { id: item.workspaceId, name: "Workspace" };
     }
   }
 

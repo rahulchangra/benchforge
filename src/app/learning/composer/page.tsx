@@ -69,7 +69,14 @@ export default function TaskComposerPage() {
   useEffect(() => {
     fetch("/api/learning/workspaces")
       .then((r) => r.json())
-      .then((json) => { if (json.success) setWorkspaces(json.data ?? []); })
+      .then((json) => {
+        if (json.success && json.data) {
+          setWorkspaces(json.data);
+          if (json.data.length > 0) {
+            setSelectedWorkspace(json.data[0].id);
+          }
+        }
+      })
       .catch(() => {});
   }, []);
 
@@ -216,7 +223,7 @@ export default function TaskComposerPage() {
               <SelectContent>
                 {workspaces.map((ws) => (
                   <SelectItem key={ws.id} value={ws.id}>
-                    {ws.name} ({ws._count.taskPackages} tasks)
+                    {ws.name} ({ws._count?.taskPackages ?? 0} tasks)
                   </SelectItem>
                 ))}
               </SelectContent>
