@@ -334,10 +334,10 @@ async function executeCrawlPhase(
           },
         });
 
-        // Search issues
+        // Search issues (OPEN ONLY - for agent to work on)
         try {
           const ghIssues = await fetchIssues(octokit, repo.owner, repo.name, {
-            state: "closed",
+            state: "open", // 🔥 ONLY OPEN ISSUES FOR AUTONOMOUS AGENT
             maxPages: 1,
           });
 

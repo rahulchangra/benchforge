@@ -145,7 +145,7 @@ export async function fetchIssues(
     {
       owner,
       repo,
-      state: options.state ?? "closed",
+      state: options.state ?? "open", // 🔥 DEFAULT TO OPEN ISSUES ONLY
       labels: options.labels,
       sort: options.sort ?? "updated",
       direction: options.direction ?? "desc",
