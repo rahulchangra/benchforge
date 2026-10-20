@@ -61,10 +61,15 @@ const data: StoreData =
   });
 
 function seedInitialData() {
-  if (globalThis.__benchforgeInitialized || (data.olympusProject && data.olympusProject.length > 0)) {
+  // ❌ ZERO DUMMY DATA POLICY - Application must start EMPTY
+  // Database unavailable = show empty state, NOT dummy data
+  if (globalThis.__benchforgeInitialized) {
     return;
   }
   globalThis.__benchforgeInitialized = true;
+  
+  // NO SEED DATA - return immediately
+  return;
 
   // 1. User
   const defaultUser = {
