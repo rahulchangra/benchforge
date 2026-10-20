@@ -173,5 +173,93 @@ body {
 /* Smooth scroll */
 html {
   scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
 }
+
+/* ── Mobile Optimizations ── */
+@layer utilities {
+  /* Touch-friendly tap targets (minimum 44x44px for accessibility) */
+  .touch-target {
+    @apply min-h-[44px] min-w-[44px];
+  }
+  
+  /* Remove tap highlight on mobile */
+  .tap-highlight-none {
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  /* Hide scrollbar on mobile while keeping functionality */
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* iOS Safe Area Support (notch, home indicator) */
+@supports (padding: max(0px)) {
+  .safe-top {
+    padding-top: max(env(safe-area-inset-top), 1rem);
+  }
+  
+  .safe-bottom {
+    padding-bottom: max(env(safe-area-inset-bottom), 1rem);
+  }
+  
+  .safe-left {
+    padding-left: max(env(safe-area-inset-left), 1rem);
+  }
+  
+  .safe-right {
+    padding-right: max(env(safe-area-inset-right), 1rem);
+  }
+}
+
+/* Prevent zoom on input focus (iOS Safari) */
+input, select, textarea, button {
+  font-size: max(16px, 1rem); /* Minimum 16px prevents auto-zoom on iOS */
+}
+
+/* Optimize for mobile touch */
+button, a, [role="button"] {
+  -webkit-tap-highlight-color: rgba(245, 158, 11, 0.2);
+  touch-action: manipulation; /* Removes 300ms click delay */
+}
+
+/* Mobile-specific scrollbar hiding */
+@media (max-width: 768px) {
+  .mobile-hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .mobile-hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  
+  /* Reduce animations on mobile for performance */
+  .reduce-motion-mobile * {
+    animation-duration: 0.2s !important;
+    transition-duration: 0.15s !important;
+  }
+}
+
+/* Landscape orientation specific (for phones) */
+@media (max-height: 500px) and (orientation: landscape) {
+  .landscape-compact {
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+  }
+}
+
+/* PWA: Hide install prompt banner on iOS */
+@media (display-mode: standalone) {
+  .pwa-hidden {
+    display: none !important;
+  }
+}
+
 
