@@ -24,6 +24,7 @@ import {
   Check,
 } from "lucide-react";
 import { AppShell } from "@/components/layout/sidebar";
+import { ExportPreviewModal } from "@/components/submissions/export-preview-modal";
 
 /* ------------------------------------------------------------------ */
 /* Types                                                               */
@@ -293,6 +294,7 @@ export default function SubmissionDetailPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [showExportPreview, setShowExportPreview] = useState(false);
 
   // Editable fields
   const [taskPrompt, setTaskPrompt] = useState("");
@@ -451,11 +453,11 @@ export default function SubmissionDetailPage() {
               <Button
                 size="sm"
                 variant="outline"
-                onClick={handleExport}
-                disabled={exporting || submission.status === "DRAFT"}
+                onClick={() => setShowExportPreview(true)}
+                disabled={submission.status === "DRAFT"}
               >
                 <Download size={14} />
-                {exporting ? "Exporting..." : "Export ZIP"}
+                Preview & Export
               </Button>
               <Button
                 size="sm"
@@ -593,6 +595,29 @@ export default function SubmissionDetailPage() {
         </div>
       </div>
       </div>
+
+      {/* Export Preview Modal */}
+      {submission && (
+        <ExportPreviewModal
+          open={showExportPreview}
+          onClose={() => setShowExportPreview(false)}
+          onConfirmExport={handleExport}
+          submission={{
+            taskTitle: submission.taskTitle,
+            taskPrompt,
+            testSh,
+            testPatch,
+            solutionPatch,
+            dockerfile,
+            language: submission.language,
+            category: submission.category,
+            repoUrl: submission.repoUrl,
+            commitHash: submission.commitHash,
+            qualityScore: submission.qualityScore,
+          }}
+          exporting={exporting}
+        />
+      )}
     </AppShell>
   );
 }
