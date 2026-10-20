@@ -2,12 +2,17 @@ import { NextRequest } from "next/server";
 import prisma from "@/lib/db";
 import { apiSuccess, apiError, withErrorHandling } from "@/lib/api-helpers";
 
+async function getParams(context: unknown): Promise<{ id: string }> {
+  const ctx = context as { params: Promise<{ id: string }> | { id: string } };
+  return ctx.params instanceof Promise ? await ctx.params : ctx.params;
+}
+
 /** DELETE /api/learning/tasks/[id] - Delete a task package and all related data */
 export const DELETE = withErrorHandling(async (
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: unknown
 ) => {
-  const taskId = params.id;
+  const { id: taskId } = await getParams(context);
 
   // Verify task exists
   const task = await prisma.taskPackage.findUnique({
@@ -79,10 +84,12 @@ export const DELETE = withErrorHandling(async (
 /** GET /api/learning/tasks/[id] - Get a single task package */
 export const GET = withErrorHandling(async (
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: unknown
 ) => {
+  const { id } = await getParams(context);
+  
   const task = await prisma.taskPackage.findUnique({
-    where: { id: params.id },
+    where: { id },
     include: {
       uploadedDocuments: {
         select: {
