@@ -43,6 +43,7 @@ import {
   RevealOnScroll,
   AnimatedCounter,
 } from "@/components/animations/motion-components";
+import { CyberCore3D } from "@/components/ui/cyber-core-3d";
 import * as Accordion from "@radix-ui/react-accordion";
 import {
   BarChart,
@@ -130,6 +131,13 @@ function LinkedinIcon({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
       <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
+    </svg>
+  );
+}
+function GmailIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
+      <path d="M24 5.457v13.909c0 .904-.732 1.636-1.636 1.636h-3.819V11.73L12 16.64l-6.545-4.91v9.273H1.636A1.636 1.636 0 0 1 0 19.366V5.457c0-2.023 2.309-3.178 3.927-1.964L12 9.545l8.073-6.052C21.69 2.28 24 3.434 24 5.457z" />
     </svg>
   );
 }
@@ -380,7 +388,7 @@ export default function LandingPage() {
             backgroundSize: "60px 60px",
           }}
         />
-        <div className="relative z-10 mx-auto max-w-7xl px-6 py-24">
+        <div className="relative z-10 mx-auto max-w-7xl px-6 py-24 w-full">
           <div className="flex flex-col gap-16 lg:flex-row lg:items-center lg:justify-between">
             <div className="max-w-2xl">
               <motion.p
@@ -422,43 +430,15 @@ export default function LandingPage() {
                 </Link>
               </motion.div>
             </div>
-            {/* Right side: Stats + Release card */}
+            {/* Right side: Cyber Core 3D */}
             <motion.div
-              className="flex flex-col gap-4 lg:min-w-[300px]"
+              className="flex flex-col gap-4 lg:min-w-[500px] lg:h-[500px]"
               initial={{ opacity: 0, x: 40 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.5, duration: 0.6 }}
             >
-              <div className="rounded-2xl border border-neutral-800 bg-neutral-900/60 p-6 backdrop-blur-sm">
-                <div className="mb-2 flex items-center gap-2">
-                  <Activity size={14} className="text-orange-500" />
-                  <span className="text-xs font-mono text-orange-500 uppercase">
-                    Neural Pipeline // Latest Release
-                  </span>
-                </div>
-                <div className="mt-3 h-20 rounded-lg bg-gradient-to-t from-orange-500/10 via-orange-500/5 to-transparent flex items-end justify-center">
-                  <div className="w-full h-16 bg-gradient-to-t from-orange-500/20 to-transparent rounded-t-lg relative overflow-hidden">
-                    <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0.5 h-full bg-gradient-to-t from-orange-400 to-transparent" />
-                    <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-8 h-8 rounded-full bg-orange-500/20 blur-md" />
-                  </div>
-                </div>
-                <ArrowRight size={18} className="mt-3 text-orange-500" />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="rounded-xl border border-neutral-800 bg-neutral-900/60 p-4">
-                  <p className="text-3xl font-bold text-white">
-                    99.9<span className="text-lg text-neutral-500">%</span>
-                  </p>
-                  <p className="mt-1 text-xs text-neutral-500">Accuracy</p>
-                  <p className="text-xs text-neutral-600">Deterministic verification</p>
-                </div>
-                <div className="rounded-xl border border-neutral-800 bg-neutral-900/60 p-4">
-                  <p className="text-3xl font-bold text-white">
-                    +45
-                  </p>
-                  <p className="mt-1 text-xs text-neutral-500">Licenses</p>
-                  <p className="text-xs text-neutral-600">SPDX compliance checked</p>
-                </div>
+              <div className="w-full h-full min-h-[400px] rounded-2xl border border-neutral-800 bg-neutral-900/60 backdrop-blur-sm overflow-hidden">
+                <CyberCore3D className="w-full h-full" />
               </div>
             </motion.div>
           </div>
@@ -1107,9 +1087,9 @@ export default function LandingPage() {
                   <h3 className="mb-4 text-sm font-semibold text-neutral-300">Follow us</h3>
                   <div className="flex items-center gap-4">
                     {[
-                      { icon: <GithubIcon className="h-5 w-5" />, label: "GitHub", href: "https://github.com/rahulchangra/benchforge" },
-                      { icon: <TwitterIcon className="h-5 w-5" />, label: "X" },
-                      { icon: <LinkedinIcon className="h-5 w-5" />, label: "LinkedIn" },
+                      { icon: <GithubIcon className="h-5 w-5" />, label: "GitHub", href: "https://github.com/rahulchangra" },
+                      { icon: <LinkedinIcon className="h-5 w-5" />, label: "LinkedIn", href: "https://www.linkedin.com/in/rahul-changra-0b0217218/" },
+                      { icon: <GmailIcon className="h-5 w-5" />, label: "Gmail", href: "mailto:changrarahul55@gmail.com" },
                     ].map((s) => (
                       <a
                         key={s.label}
