@@ -71,36 +71,55 @@ export function ZipTaskExtractor({
     setZipFileSize(file.size);
 
     try {
+      // Convert to base64 and upload directly to server for multi-task extraction
       const buffer = await file.arrayBuffer();
-      const extracted = await parseZipTaskArchive(buffer, name);
+      const base64 = btoa(
+        new Uint8Array(buffer).reduce((data, byte) => data + String.fromCharCode(byte), "")
+      );
 
-      setExtractedData(extracted);
-      setTitle(extracted.title);
-      setDescription(extracted.description);
-      setDomain(extracted.domain);
-      setCategory(extracted.category);
-      setTagsInput(extracted.tags.join(", "));
-
-      toast({
-        type: "success",
-        title: "ZIP Extracted Successfully",
-        description: `Extracted ${extracted.allFiles.length} files, including ${
-          extracted.problemMd ? "problem.md, " : ""
-        }${extracted.testPatch ? "test.patch, " : ""}${
-          extracted.solutionPatch ? "solution.patch, " : ""
-        }${extracted.dockerfile ? "Dockerfile" : ""}.`,
+      // Upload to server for multi-task extraction
+      setSubmitting(true);
+      const res = await fetch("/api/learning/tasks/upload-zip", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          workspaceId,
+          zipFileBase64: base64,
+          filename: name,
+        }),
       });
+
+      const json = await res.json();
+      
+      if (json.success && json.data) {
+        toast({
+          type: "success",
+          title: `${json.data.tasksCreated} Task(s) Extracted!`,
+          description: `Successfully extracted ${json.data.tasksCreated} task(s) with ${json.data.totalFiles} files. Knowledge graph updated.`,
+        });
+        
+        // Reset form and notify success
+        setExtractedData(null);
+        onSuccess(json.data.taskPackages[0]?.id || "");
+      } else {
+        toast({
+          type: "error",
+          title: "Extraction Failed",
+          description: json.error || "Failed to extract tasks from ZIP",
+        });
+      }
     } catch (err: any) {
-      console.error("ZIP parse error:", err);
+      console.error("ZIP upload error:", err);
       toast({
         type: "error",
-        title: "Extraction Failed",
+        title: "Upload Failed",
         description:
-          err?.message || "Could not read the ZIP archive. Make sure it is a valid .zip file.",
+          err?.message || "Could not upload ZIP file. Check your connection.",
       });
       setExtractedData(null);
     } finally {
       setParsing(false);
+      setSubmitting(false);
     }
   };
 
