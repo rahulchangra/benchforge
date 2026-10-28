@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z, type ZodType } from "zod";
 import { ensureSchema } from "@/lib/ensure-schema";
+import { applyRateLimit } from "@/lib/rate-limit";
 
 /** Standard API response wrapper */
 export interface ApiResponse<T = unknown> {
@@ -66,18 +67,37 @@ export function parseQuery(request: NextRequest) {
   return { page, perPage, search, sort, order, params: url.searchParams };
 }
 
-/** Wrap an API handler with error handling */
+/** Wrap an API handler with error handling and optional rate limiting */
 export function withErrorHandling(
-  handler: (request: NextRequest, context?: unknown) => Promise<NextResponse>
+  handler: (request: NextRequest, context?: unknown) => Promise<NextResponse>,
+  options?: { rateLimit?: boolean; limit?: number; windowMs?: number }
 ) {
   return async (request: NextRequest, context?: unknown): Promise<NextResponse> => {
     try {
+      if (options?.rateLimit) {
+        const rateLimitResponse = applyRateLimit(
+          request,
+          options.limit ?? 60,
+          options.windowMs ?? 60_000
+        );
+        if (rateLimitResponse) {
+          return new NextResponse(rateLimitResponse.body, {
+            status: rateLimitResponse.status,
+            headers: rateLimitResponse.headers,
+          });
+        }
+      }
       await ensureSchema();
       return await handler(request, context);
     } catch (error) {
       console.error("API Error:", error);
+      const isProd = process.env.NODE_ENV === "production";
       const message =
-        error instanceof Error ? error.message : "Internal server error";
+        isProd
+          ? "Internal server error"
+          : error instanceof Error
+            ? error.message
+            : "Internal server error";
       return apiError(message, 500);
     }
   };

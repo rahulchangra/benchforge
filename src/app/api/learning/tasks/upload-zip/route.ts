@@ -4,14 +4,20 @@ import prisma from "@/lib/db";
 import { apiSuccess, apiError, parseBody, withErrorHandling } from "@/lib/api-helpers";
 import { parseMultiTaskZip } from "@/lib/zip-multi-task-parser";
 
+const MAX_BASE64_LENGTH = 70 * 1024 * 1024; // ~50MB payload limit
+
 const UploadMultiTaskZipSchema = z.object({
   workspaceId: z.string().min(1),
-  zipFileBase64: z.string().min(1), // Base64 encoded ZIP
-  filename: z.string().min(1),
+  zipFileBase64: z
+    .string()
+    .min(1)
+    .max(MAX_BASE64_LENGTH, "ZIP archive payload exceeds maximum size limit (50MB)"),
+  filename: z.string().min(1).max(255),
 });
 
 /** POST /api/learning/tasks/upload-zip - Upload ZIP with multiple approved tasks */
-export const POST = withErrorHandling(async (request: NextRequest) => {
+export const POST = withErrorHandling(
+  async (request: NextRequest) => {
   const { data, error } = await parseBody(request, UploadMultiTaskZipSchema);
   if (error) return error;
 
@@ -149,4 +155,4 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
     console.error("ZIP upload error:", err);
     return apiError(err.message || "Failed to process ZIP archive", 500);
   }
-});
+}, { rateLimit: true, limit: 10, windowMs: 60_000 });

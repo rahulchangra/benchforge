@@ -202,3 +202,4 @@
 * **Root Cause:** Direct storage of `account.access_token` in the user model without encryption at rest.
 * **Recommended Fix:**
   - Encrypt sensitive provider tokens with AES-256-GCM using `NEXTAUTH_SECRET` before persisting to database.
+

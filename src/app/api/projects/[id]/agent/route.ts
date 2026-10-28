@@ -81,6 +81,7 @@ export const POST = withErrorHandling(
     });
 
     return apiSuccess(run);
-  }
+  },
+  { rateLimit: true, limit: 15, windowMs: 60_000 }
 );
 

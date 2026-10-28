@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import path from "node:path";
 import { z } from "zod";
 import prisma from "@/lib/db";
 import {
@@ -29,6 +30,15 @@ const EligibilityCheckSchema = z.object({
 export const POST = withErrorHandling(async (request: NextRequest) => {
   const { data, error } = await parseBody(request, EligibilityCheckSchema);
   if (error) return error;
+
+  // Validate and confine localPath to prevent arbitrary filesystem traversal
+  if (data.localPath) {
+    const rootDir = path.resolve(process.cwd());
+    const resolvedPath = path.resolve(rootDir, data.localPath);
+    if (!resolvedPath.startsWith(rootDir) || data.localPath.includes("..")) {
+      return apiError("Invalid or unauthorized local repository path", 400);
+    }
+  }
 
   const octokit = createGitHubClient({ token: data.token });
   const fullName = `${data.owner}/${data.repo}`;
@@ -209,4 +219,4 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
     },
     eligibility: decision,
   });
-});
+}, { rateLimit: true, limit: 30, windowMs: 60_000 });

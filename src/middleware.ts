@@ -10,12 +10,39 @@ const publicPrefixes = ["/api/auth", "/api/health", "/_next", "/favicon.ico"];
 const staticExtensions =
   /\.(svg|png|jpg|jpeg|gif|webp|ico|css|js|woff2?|ttf|eot|map)$/;
 
-/** Attach security headers to every response */
+/** Attach modern security headers to every response */
 function withSecurityHeaders(response: NextResponse): NextResponse {
   response.headers.set("X-Frame-Options", "DENY");
   response.headers.set("X-Content-Type-Options", "nosniff");
   response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
   response.headers.set("X-XSS-Protection", "1; mode=block");
+
+  // Content Security Policy (defense-in-depth)
+  const cspHeader = [
+    "default-src 'self'",
+    "script-src 'self' 'unsafe-eval' 'unsafe-inline'",
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data: https: blob:",
+    "font-src 'self' data:",
+    "connect-src 'self' https: http:",
+    "frame-ancestors 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+  ].join("; ");
+
+  response.headers.set("Content-Security-Policy", cspHeader);
+  response.headers.set(
+    "Permissions-Policy",
+    "camera=(), microphone=(), geolocation=(), browsing-topics=()"
+  );
+
+  if (process.env.NODE_ENV === "production") {
+    response.headers.set(
+      "Strict-Transport-Security",
+      "max-age=31536000; includeSubDomains; preload"
+    );
+  }
+
   return response;
 }
 
@@ -44,8 +71,13 @@ export default async function middleware(request: NextRequest) {
     return withSecurityHeaders(NextResponse.next());
   }
 
-  // Demo mode - skip auth when OAuth is not configured
+  // Demo mode - skip auth when OAuth is not configured (development/demo only)
   if (!authEnabled) {
+    if (process.env.NODE_ENV === "production") {
+      const loginUrl = new URL("/login", request.url);
+      loginUrl.searchParams.set("error", "OAuthRequired");
+      return NextResponse.redirect(loginUrl);
+    }
     return withSecurityHeaders(NextResponse.next());
   }
 

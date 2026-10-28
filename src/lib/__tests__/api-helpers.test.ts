@@ -179,4 +179,42 @@ describe('withErrorHandling', () => {
     expect(json.success).toBe(false);
     expect(json.error).toBe('boom');
   });
+
+  it('masks internal error details in production environment', async () => {
+    const origEnv = process.env.NODE_ENV;
+    try {
+      // @ts-expect-error test override
+      process.env.NODE_ENV = 'production';
+      const handler = async () => {
+        throw new Error('Sensitive SQL syntax error at column credentials');
+      };
+      const wrapped = withErrorHandling(handler);
+      const req = new NextRequest('http://localhost/api');
+      const res = await wrapped(req);
+      expect(res.status).toBe(500);
+      const json = await res.json();
+      expect(json.success).toBe(false);
+      expect(json.error).toBe('Internal server error');
+    } finally {
+      // @ts-expect-error test restore
+      process.env.NODE_ENV = origEnv;
+    }
+  });
+
+  it('enforces rate limiting when enabled', async () => {
+    const handler = async () => apiSuccess({ ok: true });
+    const wrapped = withErrorHandling(handler, { rateLimit: true, limit: 2, windowMs: 10_000 });
+    const req = new NextRequest('http://localhost/api', {
+      headers: { 'x-forwarded-for': '192.168.1.100' },
+    });
+
+    const res1 = await wrapped(req);
+    expect(res1.status).toBe(200);
+
+    const res2 = await wrapped(req);
+    expect(res2.status).toBe(200);
+
+    const res3 = await wrapped(req);
+    expect(res3.status).toBe(429);
+  });
 });

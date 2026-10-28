@@ -92,37 +92,40 @@ test.describe("Stage 4 & 5: Functional Baseline and Security Scans", () => {
   });
 
   // --------------------------------------------------------------------------
-  // 4. File Path Traversal Boundary Test
+  // 4. File Path Traversal Boundary Test (SEC-03 Fix Verification)
   // --------------------------------------------------------------------------
-  test("Security Check: Arbitrary localPath boundary test on eligibility API", async ({ request }) => {
-    // Test that an arbitrary traversal path parameter is received
+  test("Security Check: Arbitrary localPath traversal is rejected with 400", async ({ request }) => {
     const response = await request.post("/api/repositories/eligibility", {
       data: {
         owner: "octocat",
         repo: "Hello-World",
-        localPath: "../../../../../Windows", // Out of bounds path
+        localPath: "../../../../../Windows", // Out of bounds path traversal
       },
     });
 
-    // In current state without path confinement, the request does not reject the traversal parameter at schema validation
-    // Status will be 200 or 404 (if octocat/Hello-World license allows/fails), but should reject path upfront
-    expect([200, 404, 400]).toContain(response.status());
+    // Path confinement ensures traversal attempts are rejected
+    expect(response.status()).toBe(400);
+    const body = await response.json();
+    expect(body.success).toBe(false);
+    expect(body.error).toContain("Invalid or unauthorized local repository path");
   });
 
   // --------------------------------------------------------------------------
-  // 5. Passive Headers & Cookie Inspection
+  // 5. Modern Security Headers & CSP (SEC-07 Fix Verification)
   // --------------------------------------------------------------------------
-  test("Security Check: Passive inspection of security headers on API responses", async ({ request }) => {
+  test("Security Check: Modern security headers including CSP and Permissions-Policy", async ({ request }) => {
     const response = await request.get("/api/health");
     const headers = response.headers();
 
-    // Standard headers enforced by middleware
+    // Standard baseline headers
     expect(headers["x-frame-options"]).toBe("DENY");
     expect(headers["x-content-type-options"]).toBe("nosniff");
     expect(headers["referrer-policy"]).toBe("strict-origin-when-cross-origin");
 
-    // Observe CSP status (baseline records absence)
-    const hasCsp = !!headers["content-security-policy"];
-    expect(hasCsp).toBe(false); // Documents gap for SEC-07
+    // Modern defense-in-depth headers
+    expect(headers["content-security-policy"]).toBeDefined();
+    expect(headers["content-security-policy"]).toContain("frame-ancestors 'none'");
+    expect(headers["permissions-policy"]).toBeDefined();
   });
 });
+
