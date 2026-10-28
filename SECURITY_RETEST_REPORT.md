@@ -106,3 +106,4 @@ Test Files  6 passed (6)
    * Before opening registration to public users who connect personal GitHub tokens, integrate symmetric envelope encryption (e.g. AES-GCM) on the `githubToken` field in the Prisma model.
 3. **Branch Merge:**
    * Review and merge the isolated [`security-audit`](file:///c:/Users/Rahul/OneDrive/Documents/Desktop/Benchforge/benchforge-master) branch into your main deployment branch.
+
