@@ -8,9 +8,18 @@ declare global {
   var __prismaProxy: PrismaClient | undefined;
 }
 
+const defaultDatabaseUrl =
+  process.env.DATABASE_URL ||
+  "postgresql://neondb_owner:npg_VEWtMXIR9Ac0@ep-bold-meadow-b4fnzihz.c-6.us-east-2.aws.neon.tech/neondb?sslmode=require";
+
 const rawPrisma: PrismaClient =
   globalThis.__prismaRaw ??
   new PrismaClient({
+    datasources: {
+      db: {
+        url: defaultDatabaseUrl,
+      },
+    },
     log: process.env.NODE_ENV === "development" ? ["warn", "error"] : ["error"],
   });
 

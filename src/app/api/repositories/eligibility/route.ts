@@ -33,8 +33,8 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
 
   // Validate and confine localPath to prevent arbitrary filesystem traversal
   if (data.localPath) {
-    const rootDir = path.resolve(process.cwd());
-    const resolvedPath = path.resolve(rootDir, data.localPath);
+    const rootDir = path.resolve(/*turbopackIgnore: true*/ process.cwd());
+    const resolvedPath = path.resolve(/*turbopackIgnore: true*/ rootDir, data.localPath);
     if (!resolvedPath.startsWith(rootDir) || data.localPath.includes("..")) {
       return apiError("Invalid or unauthorized local repository path", 400);
     }
